@@ -1,12 +1,12 @@
 # mitoCN
 
-Estimate mitochondrial DNA copy number (mtDNA-CN) from whole-genome sequencing (WGS) data, with adjustment coverage bias, including GC bias and homology bias.
+Estimate mitochondrial DNA copy number (mtDNA-CN) from whole-genome sequencing (WGS) data, with coverage bias adjustment, including GC bias and homology bias adjustment.
 
 ## Installation
 * Clone this repositoty
 
 ## Usage
-* 
+* One line command.
 
     ```
     bash mitoCN.sh -d <mitoCN.dir> -f <BAM/CRAM> -v <ref> -m <MT/chrM> -k <region> -o <out.prefix>
