@@ -19,4 +19,4 @@ Estimate mitochondrial DNA copy number (mtDNA-CN) from whole-genome sequencing (
   * `-m` - “MT”: 1,2,…,24,MT; “chrM”: chr1,chr2,…,chrY,chrM.
   * `-k` - auto, chr1, chr21, k500, by default k500.
   * `-o` - output file location and prefix name.
-  * '-a' - fasta file, if input file is CRAM format.
+  * `-a` - fasta file, if input file is CRAM format.
