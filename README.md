@@ -6,10 +6,15 @@ Estimate mitochondrial DNA copy number (mtDNA-CN) from whole-genome sequencing (
 * Clone this repositoty
 
 ## Usage
-* One line command.
+* BAM input.
 
     ```
-    bash mitoCN.sh -d <mitoCN.dir> -f <BAM/CRAM> -v <ref> -m <MT/chrM> -k <region> -o <out.prefix>
+    bash mitoCN.sh -d <mitoCN.dir> -f <BAM> -v <ref> -m <MT/chrM> -k <region> -o <out.prefix>
+    ```
+* CRAM input.
+
+    ```
+    bash mitoCN.sh -d <mitoCN.dir> -f <CRAM> -a <FASTA> -v <ref> -m <MT/chrM> -k <region> -o <out.prefix>
     ```
 
 * **Params**  
