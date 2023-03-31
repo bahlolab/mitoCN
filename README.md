@@ -1,7 +1,7 @@
 # mitoCN
 
 bash mitoCN.sh -d <mitoCN.dir> -f <BAM/CRAM> -v <ref> -m <header> -k <region> -o <out.prefix>
--d: software directory
+-d: software directory/n
 -f: BAM/CRAM file name, must have index file
 -v: hg19, hg38
 -m: “MT”: 1,2,…,24,MT; “chrM”: chr1,chr2,…,chrY,chrM
