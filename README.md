@@ -4,6 +4,7 @@ Estimate mitochondrial DNA copy number (mtDNA-CN) from whole-genome sequencing (
 
 ## Installation
 * Clone this repositoty
+* install [mosdept](https://github.com/bahlolab/nextflow-config).
 
 ## Usage
 * BAM input.
