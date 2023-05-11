@@ -140,9 +140,9 @@ rm ${out_prefix_y}.regions.*
 module load R
 Rscript ${work_dir}/mtDNA_CN.R ${out_prefix} ${region}
 
-#rm ${out_prefix_at}
-#rm ${out_prefix_mt}
-#rm ${out_prefix_x}
-#rm ${out_prefix_y}
+rm ${out_prefix_at}
+rm ${out_prefix_mt}
+rm ${out_prefix_x}
+rm ${out_prefix_y}
 
 echo 'Complete successfully!'
