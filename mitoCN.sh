@@ -7,7 +7,9 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=32GB
-#SBATCH --mail-user=wang.lo@wehi.edu.au
+
+#mosdepth=/path/to/mosdepth/mosdepth_version
+mosdepth=/wehisan/bioinf/lab_bahlo/software/apps/mosdepth/mosdepth_v0.2.9
 
 while getopts d:k:m:v:f:a:o: flag
 do
@@ -87,8 +89,6 @@ out_prefix_mt=${out_prefix}_chrM
 out_prefix_x=${out_prefix}_chrX
 out_prefix_y=${out_prefix}_chrY
 
-#mosdepth=/wehisan/bioinf/lab_bahlo/software/apps/mosdepth/mosdepth_v0.2.9
-
 ### make sure input file is bam or cram
 
 if [[ "$input_fmt" != "bam" && "$input_fmt" != "cram" ]]
@@ -100,17 +100,17 @@ fi
 ### coverage calculation
 if [[ "$input_fmt" == "bam" ]]
 then 
-    mosdepth -b $BED_file_at -n -x -F 3844 -Q 30 $out_prefix_at $BAM_file
-    mosdepth -b $BED_file_mt -n -x -F 3844 -Q 30 $out_prefix_mt $BAM_file
-    mosdepth -b $BED_file_mt -n -x -F 2820 -Q 30 $out_prefix_mt_dup $BAM_file
-    mosdepth -b $BED_file_x -n -x -F 3844 -Q 30 $out_prefix_x $BAM_file
-    mosdepth -b $BED_file_y -n -x -F 3844 -Q 30 $out_prefix_y $BAM_file
+    $mosdepth -b $BED_file_at -n -x -F 3844 -Q 30 $out_prefix_at $BAM_file
+    $mosdepth -b $BED_file_mt -n -x -F 3844 -Q 30 $out_prefix_mt $BAM_file
+    $mosdepth -b $BED_file_mt -n -x -F 2820 -Q 30 $out_prefix_mt_dup $BAM_file
+    $mosdepth -b $BED_file_x -n -x -F 3844 -Q 30 $out_prefix_x $BAM_file
+    $mosdepth -b $BED_file_y -n -x -F 3844 -Q 30 $out_prefix_y $BAM_file
 else
-    mosdepth -b $BED_file_at -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_at $BAM_file
-    mosdepth -b $BED_file_mt -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_mt $BAM_file
-    mosdepth -b $BED_file_mt -f $ref_fasta -n -x -F 2820 -Q 30 $out_prefix_mt_dup $BAM_file
-    mosdepth -b $BED_file_x -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_x $BAM_file
-    mosdepth -b $BED_file_y -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_y $BAM_file
+    $mosdepth -b $BED_file_at -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_at $BAM_file
+    $mosdepth -b $BED_file_mt -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_mt $BAM_file
+    $mosdepth -b $BED_file_mt -f $ref_fasta -n -x -F 2820 -Q 30 $out_prefix_mt_dup $BAM_file
+    $mosdepth -b $BED_file_x -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_x $BAM_file
+    $mosdepth -b $BED_file_y -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_y $BAM_file
 fi
 
 gunzip ${out_prefix_at}.regions.bed.gz
