@@ -4,6 +4,7 @@ Estimate mitochondrial DNA copy number (mtDNA-CN) from whole-genome sequencing (
 
 ## Installation
 * Clone this repositoty
+* Install [R](https://github.com/brentp/mosdepth](https://www.r-project.org/).
 * Install [mosdepth](https://github.com/brentp/mosdepth). Add the location of mosdepth to mitoCN.sh line 12 using 
     ```
     mosdepth=/path/to/mosdepth/mosdepth_version
