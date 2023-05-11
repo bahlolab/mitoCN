@@ -24,8 +24,8 @@ mtDNA_CN <- function(res_file, region){
     stop("Coverage calculation in chrM wasn't completed.")
   }
   
-  N <- sum(chrA$RC) 
-  p <- 1/(nrow(chrA))
+  N <- sum(chrA$RC) # the number of bins from autosome
+  p <- 1/(nrow(chrA)) # Np = average coverage from autosome
 
   for(ll in 1:len.g){
     binM[[ll]] <- chrM[chrM$GC >= g[ll]-3 & chrM$GC < g[ll]+2,]
