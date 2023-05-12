@@ -1,0 +1,2 @@
+region	Np	mt	var.mt	mt.dup	var.mt.dup	chrX	chrY
+k500	30.3	215.54	0.72	316.96	1.06	2.07	0

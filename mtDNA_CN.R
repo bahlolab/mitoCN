@@ -3,6 +3,7 @@ mtDNA_CN <- function(res_file, region){
   
   chrA <- read.table(paste0(res_file,"_",region), header = T, sep = "\t")
   chrM <- read.table(paste0(res_file,"_chrM"), header = T, sep = "\t")
+  chrM_dup <- read.table(paste0(res_file,"_chrM_dup"), header = T, sep = "\t")
   chrX <- read.table(paste0(res_file,"_chrX"), header = T, sep = "\t")
   chrY <- read.table(paste0(res_file,"_chrY"), header = T, sep = "\t")
 
@@ -10,9 +11,9 @@ mtDNA_CN <- function(res_file, region){
   # 5%: K=6, 
   g <- seq(33,58,5)
   len.g <- length(g)
-  mi <- ai <- xi <- yi <- c()
-  MB <- AB <- XB <- YB <- c()
-  binM <- binA <- binX <- binY <- list()
+  mi <- mdi <- ai <- xi <- yi <- c()
+  MB <- MDB <- AB <- XB <- YB <- c()
+  binM <- binMD <- binA <- binX <- binY <- list()
   
   if(all(is.na(chrA$RC))){
     stop("Coverage calculation in autosome wasn't completed.")
@@ -32,6 +33,10 @@ mtDNA_CN <- function(res_file, region){
     mi <- c(mi,nrow(binM[[ll]]))
     MB <- c(MB,sum(binM[[ll]]$RC))
 
+    binMD[[ll]] <- chrM_dup[chrM_dup$GC >= g[ll]-3 & chrM_dup$GC < g[ll]+2,]
+    mdi <- c(mdi,nrow(binMD[[ll]]))
+    MDB <- c(MDB,sum(binMD[[ll]]$RC))
+
     binX[[ll]] <- chrX[chrX$GC >= g[ll]-3 & chrX$GC < g[ll]+2,]
     xi <- c(xi,nrow(binX[[ll]]))
     XB <- c(XB,sum(binX[[ll]]$RC))
@@ -45,9 +50,9 @@ mtDNA_CN <- function(res_file, region){
     ai <- c(ai,nrow(binA[[ll]]))
     AB <- c(AB,sum(binA[[ll]]$RC))
   }
-  m <- sum(mi); a <- sum(ai); x <- sum(xi); y <- sum(yi)
-  M <- sum(MB); X <- sum(XB); Y <- sum(YB)
-  t.m <- MB+AB; t.x <- XB+AB; t.y <- YB+AB
+  m <- sum(mi); md <- sum(mdi); a <- sum(ai); x <- sum(xi); y <- sum(yi)
+  M <- sum(MB); MD <- sum(MDB); X <- sum(XB); Y <- sum(YB)
+  t.m <- MB+AB; t.md <- MDB+AB; t.x <- XB+AB; t.y <- YB+AB
   
   b0.m <- rep(0.5,len.g)
   mu.m <- 1000 
@@ -57,6 +62,16 @@ mtDNA_CN <- function(res_file, region){
     mu.m <- M/(N*p*sum(mi*b0.m))
     b.m <- t.m/(N*p*(mu.m*mi+2*ai))
     b0.m <- b.m
+  }
+
+  b0.md <- rep(0.5,len.g)
+  mu.md <- 1000 
+  mu0.md <- 0
+  while(abs(mu.md-mu0.md)>0.0001){
+    mu0.md <- mu.md
+    mu.md <- MD/(N*p*sum(mdi*b0.md))
+    b.md <- t.md/(N*p*(mu.md*mdi+2*ai))
+    b0.md <- b.md
   }
 
   b0.x <- rep(0.5,len.g)
@@ -79,8 +94,9 @@ mtDNA_CN <- function(res_file, region){
     b0.y <- b.y
   }
   var.m <- 1/(N*p*(sum(mi*b.m)/mu.m-sum((mi^2*b.m)/(mu.m*mi+2*ai))))
-  res <- as.data.frame(matrix(c(region,round(c(N*p, sum(mi*b.m), sum(ai)/sum(22*mi), mu.m, var.m, mu.x, mu.y),2)),nrow = 1))
-  colnames(res) <- c("region","Np","m_beta","k","mt","var.mt","chrX","chrY")
+  var.md <- 1/(N*p*(sum(mdi*b.md)/mu.md-sum((mdi^2*b.md)/(mu.md*mdi+2*ai))))
+  res <- as.data.frame(matrix(c(region,round(c(N*p, mu.m, var.m, mu.md, var.md, mu.x, mu.y),2)),nrow = 1))
+  colnames(res) <- c("region","Np","mt","var.mt","mt.dup","var.mt.dup","chrX","chrY")
   write.table(res,paste0(res_file,"_",region,".mitoCN.txt"),row.names = F, quote = F, sep = "\t")
   
 }

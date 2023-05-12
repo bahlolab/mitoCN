@@ -1,12 +1,5 @@
 #!/bin/bash
-
-#SBATCH --job-name=test
-#SBATCH --output=test.out
-#SBATCH --error=test.err
-#SBATCH --time=1:00:00
-#SBATCH --nodes=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=32GB
+#mitoCN 1.0
 
 #mosdepth=/path/to/mosdepth/mosdepth_version
 mosdepth=/wehisan/bioinf/lab_bahlo/software/apps/mosdepth/mosdepth_v0.2.9
@@ -25,7 +18,14 @@ do
 done
 
 echo "mitoCN diretory: $work_dir";
+
+if [[ "$region" == "" ]] 
+then
+    region=k500;
+fi
+
 echo "Region: $region";
+
 if [[ "$mt" != "MT" && "$mt" != "chrM" ]]
 then
     echo "error: -m must be MT or chrM.";
@@ -59,18 +59,10 @@ echo "Output directory: $out_dir";
 
 if [ ! -d "${out_dir}/${ID}" ] 
 then
-    mkdir ${out_dir}/${ID}
+    mkdir -p ${out_dir}/${ID}
 else
     echo "Directory ${out_dir}/${ID} exists."
 fi
-
-#region=k1
-#mt=chrM
-#ref_ver=hg19
-#BAM_file=/stornext/Bioinf/data/lab_bahlo/projects/autism/NYGC_cohort/batch2/bam/HFA5-2.merged.bam
-#out_dir=/stornext/HPCScratch/home/wang.lo/mtDNA/ASD2/results/k1
-#ref_fasta=/home/users/allstaff/wang.lo/hpc_home/software/mitoCN.v0.1.0/human_g1k_v37.fasta
-#work_dir=/home/users/allstaff/wang.lo/hpc_home/software/mitoCN.v0.1.0
 
 ### BED files
 BED_file_at=${work_dir}/${ref_ver}/${mt}/${region}.bed
@@ -86,6 +78,7 @@ GC_file_y=${work_dir}/${ref_ver}/${mt}/chrY.gc.bed
 out_prefix=${out_dir}/${ID}/${ID}
 out_prefix_at=${out_prefix}_${region}
 out_prefix_mt=${out_prefix}_chrM
+out_prefix_mt_dup=${out_prefix}_chrM_dup
 out_prefix_x=${out_prefix}_chrX
 out_prefix_y=${out_prefix}_chrY
 
@@ -142,7 +135,11 @@ Rscript ${work_dir}/mtDNA_CN.R ${out_prefix} ${region}
 
 rm ${out_prefix_at}
 rm ${out_prefix_mt}
+rm ${out_prefix_mt_dup}
 rm ${out_prefix_x}
 rm ${out_prefix_y}
 
-echo 'Complete successfully!'
+res_file=${out_prefix_at}.mitoCN.txt
+if [[ -f "$res_file" ]]; then
+    echo 'Complete successfully!'
+fi
