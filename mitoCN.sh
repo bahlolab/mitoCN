@@ -1,5 +1,5 @@
 #!/bin/bash
-#mitoCN 1.0
+#mitoCN 0.1.0
 
 #mosdepth=/path/to/mosdepth/mosdepth_version
 mosdepth=/wehisan/bioinf/lab_bahlo/software/apps/mosdepth/mosdepth_v0.2.9
