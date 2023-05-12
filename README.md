@@ -17,12 +17,12 @@ Estimate mitochondrial DNA copy number (mtDNA-CN) from whole-genome sequencing (
 
 
 ## Usage
-BAM input
+BAM input [example_bam.sh](https://github.com/bahlolab/mitoCN/blob/main/example/example_bam.sh)
 
     ```
     bash /path/to/mitoCN.sh -d <mitoCN_PATH> -f <BAM> -v <ref> -m <MT/chrM> -k <region> -o <out.prefix>
     ```
-CRAM input
+CRAM input [example_cram.sh](https://github.com/bahlolab/mitoCN/blob/main/example/example_cram.sh)
 
     ```
     bash /path/to/mitoCN.sh -d <mitoCN_PATH> -f <CRAM> -a <FASTA> -v <ref> -m <MT/chrM> -k <region> -o <out.prefix>
