@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # BAM example with hg19 ref 
 # estimate mtDNA-CN using chromosome 20
 mitoCN_PATH=/stornext/Bioinf/data/lab_bahlo/users/wang.lo/git/mitoCN
