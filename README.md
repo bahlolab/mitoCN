@@ -44,11 +44,11 @@ region | Np | mt | var.mt | mt.dup | var.mt.dup | chrX | chrY
 --- | --- | --- | --- |--- |--- |--- |---
 chr20 | 28.45 | 93.99 | 0.33 | 102.28 | 0.36 | 1.93 | 0
 
-* region - which region option was used, chr1, chr20, k500.
-* Np - average coverage 
-* mt - mtDNA-CN estimate without duplicated reads on mtDNA.
-* var.mt - variance of mtDNA-CN estimate without duplicates.
-* mt.dup - mtDNA-CN estimate with duplicated reads on mtDNA.
-* var.mt.dup - variance of mtDNA-CN estimate with duplicates.
-* chrX - X chromosome copy number estimate.
-* chrY - Y chromosome copy number estimate.
+* `region` - which region option was used, chr1, chr20, k500.
+* `Np` - average coverage 
+* `mt` - mtDNA-CN estimate without duplicated reads on mtDNA.
+* `var.mt` - variance of mtDNA-CN estimate without duplicates.
+* `mt.dup` - mtDNA-CN estimate with duplicated reads on mtDNA.
+* `var.mt.dup` - variance of mtDNA-CN estimate with duplicates.
+* `chrX` - X chromosome copy number estimate.
+* `chrY` - Y chromosome copy number estimate.
