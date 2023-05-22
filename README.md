@@ -5,7 +5,7 @@ Estimate mitochondrial DNA copy number (mtDNA-CN) from whole-genome sequencing (
 ## Installation
 * Clone this repositoty
     ```
-    git clone git@github.com:bahlolab/mitoCN.git
+    git clone https://github.com/bahlolab/mitoCN
     ```
     
 * Install [R](https://www.r-project.org/).
