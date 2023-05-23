@@ -40,7 +40,7 @@ CRAM input
 
 
 ## Example
-Simulated reads were generated using [ATR](https://statics.teams.cdn.office.net/evergreen-assets/safelinks/1/atp-safelinks.html). 
+Simulated reads were generated using [ATR](https://www.niehs.nih.gov/research/resources/software/biostatistics/art/index.cfm). 
 Fold coverage = 6X, gender = male, true mtDNA copy number = 4. The script can be found [here]().
 
 ## Output
