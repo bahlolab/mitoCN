@@ -9,12 +9,12 @@ samtools faidx Homo_sapiens_assembly38.fasta chrY > ./reads_sim/human38_chrY.fa
 samtools faidx Homo_sapiens_assembly38.fasta chr20 > ./reads_sim/human38_chr20.fa
 samtools faidx Homo_sapiens_assembly38.fasta chr20 chrX chrY chrM > ./reads_sim/human38_select.fa
 
-# simulate reads: male, mtDNA-CN = 3, average coverage = 6X
+# simulate reads: male, mtDNA-CN = 4, average coverage = 10X
 cd reads_sim
-$art_illumina -ss HSXn -sam -i human38_chrM.fa -p -l 150 -f 9 -m 200 -s 10 -o chrM
-$art_illumina -ss HSXn -sam -i human38_chrX.fa -p -l 150 -f 3 -m 200 -s 10 -o chrX
-$art_illumina -ss HSXn -sam -i human38_chrY.fa -p -l 150 -f 3 -m 200 -s 10 -o chrY
-$art_illumina -ss HSXn -sam -i human38_chr20.fa -p -l 150 -f 6 -m 200 -s 10 -o chr20
+$art_illumina -ss HSXn -sam -i human38_chrM.fa -p -l 150 -f 20 -m 200 -s 10 -o chrM
+$art_illumina -ss HSXn -sam -i human38_chrX.fa -p -l 150 -f 5 -m 200 -s 10 -o chrX
+$art_illumina -ss HSXn -sam -i human38_chrY.fa -p -l 150 -f 5 -m 200 -s 10 -o chrY
+$art_illumina -ss HSXn -sam -i human38_chr20.fa -p -l 150 -f 10 -m 200 -s 10 -o chr20
 
 # sort and index sam -> bam
 samtools sort chrM.sam > chrM.bam
