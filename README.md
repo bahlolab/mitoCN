@@ -41,7 +41,7 @@ CRAM input
 
 ## Example
 Simulated reads were generated using [ATR](https://www.niehs.nih.gov/research/resources/software/biostatistics/art/index.cfm). 
-Fold coverage = 6X, gender = male, true mtDNA copy number = 4. The script can be found [here](https://github.com/bahlolab/mitoCN/blob/main/example/reads_sim.sh).
+Fold coverage = 10X, gender = male, true mtDNA copy number = 4. The script can be found [here](https://github.com/bahlolab/mitoCN/blob/main/example/reads_sim.sh).
 
 ## Output
 [Output file](https://github.com/bahlolab/mitoCN/blob/main/example/sample/sample_chr20.mitoCN.txt) of [example.sh](https://github.com/bahlolab/mitoCN/blob/main/example/example.sh)
