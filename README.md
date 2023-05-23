@@ -40,7 +40,7 @@ CRAM input
 
 
 ## Example
-Simulated reads were generated using [ATR](https://www.niehs.nih.gov/research/resources/software/biostatistics/art/index.cfm). 
+Simulated reads were generated using [ART](https://www.niehs.nih.gov/research/resources/software/biostatistics/art/index.cfm). 
 Fold coverage = 10X, gender = male, true mtDNA copy number = 4. The script can be found [here](https://github.com/bahlolab/mitoCN/blob/main/example/reads_sim.sh).
 
 ## Output
