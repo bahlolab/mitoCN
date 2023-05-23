@@ -36,7 +36,7 @@ CRAM input [example_cram.sh](https://github.com/bahlolab/mitoCN/blob/main/exampl
 * `-m` - “MT”: 1,2,…,24,MT; “chrM”: chr1,chr2,…,chrY,chrM. 
 * `-k` - chr1, chr20, k500, by default k500 (recommend!).
 * `-o` - output file directory.
-* `-a` - fasta file, if input file is CRAM format.
+* `-a` - reference (.fasta) file name, if input file is CRAM format. Must include the index (.fai) file in the same directory.
 
 
 ## Output
