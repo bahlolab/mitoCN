@@ -39,18 +39,16 @@ CRAM input [example_cram.sh](https://github.com/bahlolab/mitoCN/blob/main/exampl
 * `-a` - reference (.fasta) file name, if input file is CRAM format. Must include the index (.fai) file in the same directory.
 
 
+## Example
+Simulated reads were generated using [ATR](https://statics.teams.cdn.office.net/evergreen-assets/safelinks/1/atp-safelinks.html). 
+Fold coverage = 6X, gender = male, true mtDNA copy number = 4. The script can be found [here]().
+
 ## Output
-[Output file](https://github.com/bahlolab/mitoCN/blob/main/example/sample1/sample1_k500.mitoCN.txt) of [example_cram.sh](https://github.com/bahlolab/mitoCN/blob/main/example/example_cram.sh)
+[Output file](https://github.com/bahlolab/mitoCN/blob/main/example/sample/sample_chr20.mitoCN.txt) of [example.sh](https://github.com/bahlolab/mitoCN/blob/main/example/example.sh)
 
 region | Np | mt | var.mt | mt.dup | var.mt.dup | chrX | chrY
 --- | --- | --- | --- |--- |--- |--- |---
-k500 | 30.3 | 215.54 | 0.72 | 316.96 | 1.06 | 2.07 | 0
-
-[Output file](https://github.com/bahlolab/mitoCN/blob/main/example/sample2/sample2_chr20.mitoCN.txt) of [example_bam.sh](https://github.com/bahlolab/mitoCN/blob/main/example/example_bam.sh)
-
-region | Np | mt | var.mt | mt.dup | var.mt.dup | chrX | chrY
---- | --- | --- | --- |--- |--- |--- |---
-chr20 | 28.45 | 93.99 | 0.33 | 102.28 | 0.36 | 1.93 | 0
+chr20 | 10 | 3.6 | 0.04 | 3.6 | 0.04 | 0.87 | 0.86
 
 * `region` - which region option was used, chr1, chr20, k500.
 * `Np` - average coverage 
