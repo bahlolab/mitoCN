@@ -17,15 +17,15 @@ Estimate mitochondrial DNA copy number (mtDNA-CN) from whole-genome sequencing (
 
 
 ## Usage
-BAM input
+* BAM input
     ```
-    bash /path/to/mitoCN.sh -d <mitoCN_PATH> -f <BAM> -v <ref> -m <MT/chrM> -k <region> -o <out.prefix>
+    mosdepth=/path/to/mosdepth/mosdepth_version
     ```
-
-CRAM input
+* CRAM input
     ```
     bash /path/to/mitoCN.sh -d <mitoCN_PATH> -f <CRAM> -a <FASTA> -v <ref> -m <MT/chrM> -k <region> -o <out.prefix>
     ```
+
 
 **Params**  
 * `-d` - the location of mitoCN. For example, if you download mitoCN to your home direcoty, mitoCN_PATH=/Home/mitoCN.
