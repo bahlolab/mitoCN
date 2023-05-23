@@ -1,2 +1,0 @@
-region	Np	mt	var.mt	mt.dup	var.mt.dup	chrX	chrY
-chr20	28.45	93.99	0.33	102.28	0.36	1.93	0
