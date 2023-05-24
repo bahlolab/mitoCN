@@ -60,8 +60,8 @@ chr20 | 10 | 3.6 | 0.04 | 3.6 | 0.04 | 0.87 | 0.86
 ## Run time
 Use a GTEx sample as an example. ID = GTEX-1117F-0003-SM-6WBT7, CRAM file size = 46.3GB, fold coverage = 30X. The run time with difference -k options are as follows.
 
-option | real time | user time | system time 
---- | --- | --- | --- |--- |--- |--- |---
+option | real time | user time | system time
+--- | --- | --- | ---
 k500 | 10m23s | 5m12s | 5m7s
 chr1 | 1m50s | 56s | 50s
 crh20 | 59s | 29s | 27s
