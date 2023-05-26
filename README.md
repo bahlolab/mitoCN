@@ -68,4 +68,5 @@ chr1 | 1m50s | 56s | 50s
 crh20 | 59s | 29s | 27s
 
 ## Citation
-If you use mitoCN, please acknowledge by citing Longfei Wang, Liam G. Fearnley, Terence P. Speed and Melanie Bahlo. **mitoCN**. DOI: 10.5281/zenodo.7972719
+If you use mitoCN, please acknowledge by citing 
+"Longfei Wang, Liam G. Fearnley, Terence P. Speed and Melanie Bahlo. **mitoCN**. DOI: 10.5281/zenodo.7972719"
