@@ -65,3 +65,6 @@ option | real time | user time | system time
 k500 | 10m23s | 5m12s | 5m7s
 chr1 | 1m50s | 56s | 50s
 crh20 | 59s | 29s | 27s
+
+## Citation
+If you use mitoCN, please acknowledge by citing Longfei Wang, Liam G. Fearnley, Terence P. Speed and Melanie Bahlo.
