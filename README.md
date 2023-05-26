@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/621654308.svg)](https://zenodo.org/badge/latestdoi/621654308)
 # mitoCN
 
 Estimate mitochondrial DNA copy number (mtDNA-CN) from whole-genome sequencing (WGS) data, with coverage bias adjustment, including GC bias and homology bias adjustment. It takes about 10 minutes of CPU time for a 30X genome.
@@ -67,4 +68,4 @@ chr1 | 1m50s | 56s | 50s
 crh20 | 59s | 29s | 27s
 
 ## Citation
-If you use mitoCN, please acknowledge by citing Longfei Wang, Liam G. Fearnley, Terence P. Speed and Melanie Bahlo.
+If you use mitoCN, please acknowledge by citing Longfei Wang, Liam G. Fearnley, Terence P. Speed and Melanie Bahlo. **mitoCN**. DOI: 10.5281/zenodo.7972719
