@@ -70,3 +70,6 @@ crh20 | 59s | 29s | 27s
 ## Citation
 If you use mitoCN, please acknowledge by citing 
 "Longfei Wang, Liam G. Fearnley, Terence P. Speed and Melanie Bahlo. **mitoCN**. DOI: 10.5281/zenodo.7972719"
+
+## Funding
+This work is supported by Michael J. Fox Foundation and Shake It Up Australia Foundation through Spring 2022 RFA: Parkinson’s Pathway Molecular Data Analysis Program. 
