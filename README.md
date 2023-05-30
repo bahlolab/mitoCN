@@ -5,7 +5,7 @@ Estimate mitochondrial DNA copy number (mtDNA-CN) from whole-genome sequencing (
 
 ## Citation
 If you use mitoCN, please acknowledge by citing 
-"Longfei Wang, Liam G. Fearnley, Terence P. Speed and Melanie Bahlo. **mitoCN: a fast and robust mitochondrial DNA copy number estimator using whole-geonome sequencing data.** DOI: 10.5281/zenodo.7972719"
+"Longfei Wang, Liam G. Fearnley, Terence P. Speed and Melanie Bahlo. **mitoCN: a fast and robust mitochondrial DNA copy number estimator using whole-genome sequencing data.** DOI: 10.5281/zenodo.7972719"
 
 ## Installation
 * Clone this repositoty
