@@ -1,14 +1,16 @@
 [![DOI](https://zenodo.org/badge/621654308.svg)](https://zenodo.org/badge/latestdoi/621654308)
 # mitoCN
 
-Estimate mitochondrial DNA copy number (mtDNA-CN) from whole-genome sequencing (WGS) data, with coverage bias adjustment, including GC bias and homology bias adjustment. It takes about 10 minutes of CPU time for a 30X genome.
+Estimate mitochondrial DNA copy number (mtDNA-CN) from whole-genome sequencing (WGS) data, with coverage bias adjustment, including GC bias and homology bias adjustment. It takes about 10 minutes of CPU time for a 30X genome. 
+
+Please contact the author, Longfei Wang <wang.lo@wehi.edu.au>, if you would like to report any issues, feedback or feature requests.
 
 ## Citation
 If you use mitoCN, please acknowledge by citing 
 "Longfei Wang, Liam G. Fearnley, Terence P. Speed and Melanie Bahlo. **mitoCN: a fast and robust mitochondrial DNA copy number estimator using whole-genome sequencing data.** DOI: 10.5281/zenodo.7972719"
 
 ## Installation
-* Clone this repositoty
+* Clone this repository
     ```
     git clone https://github.com/bahlolab/mitoCN
     ```
@@ -33,7 +35,7 @@ If you use mitoCN, please acknowledge by citing
 
 
 **Params**  
-* `-d` - the location of mitoCN. For example, if you download mitoCN to your home direcoty, the parameter should be `-d /Home/mitoCN`.
+* `-d` - the location of mitoCN. For example, if you download mitoCN to your home directory, the parameter should be `-d /Home/mitoCN`.
 * `-f` - BAM/CRAM file name, must have index file. Single file only.
 * `-v` - hg19, hg38. Depends on which reference you used for alignment.
 * `-m` - “MT”: 1,2,…,24,MT; “chrM”: chr1,chr2,…,chrY,chrM. You can check this from the header using `samtools view -H $BAM > header`.
@@ -44,7 +46,7 @@ If you use mitoCN, please acknowledge by citing
 
 ## Example
 Simulated reads were generated using [ART](https://www.niehs.nih.gov/research/resources/software/biostatistics/art/index.cfm).
-Fold coverage = 10X, gender = male (1 copy of chrX & chrY), true mtDNA copy number = 4. The example data can be dowloaded [here](https://zenodo.org/record/7964357). The script of generating simulation data can be found [here](https://github.com/bahlolab/mitoCN/blob/main/example/reads_sim.sh).
+Fold coverage = 10X, gender = male (1 copy of chrX & chrY), true mtDNA copy number = 4. The example data can be downloaded [here](https://zenodo.org/record/7964357). The script of generating simulation data can be found [here](https://github.com/bahlolab/mitoCN/blob/main/example/reads_sim.sh).
 
 ## Output
 [Output file](https://github.com/bahlolab/mitoCN/blob/main/example/sample/sample_chr20.mitoCN.txt) of [example.sh](https://github.com/bahlolab/mitoCN/blob/main/example/example.sh)
