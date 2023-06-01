@@ -1,8 +1,11 @@
 #!/bin/bash
 #mitoCN 0.1.0
 
-#mosdepth=/path/to/mosdepth/mosdepth_version
+set -euxo pipefail
+
+# mosdepth=/path/to/mosdepth/mosdepth_version
 mosdepth=/wehisan/bioinf/lab_bahlo/software/apps/mosdepth/mosdepth_v0.2.9
+# module load R
 
 while getopts d:k:m:v:f:a:o: flag
 do
@@ -130,7 +133,6 @@ rm ${out_prefix_y}.mosdepth.*
 rm ${out_prefix_y}.regions.*
 
 ### mtDNA-CN estimation
-module load R
 Rscript ${work_dir}/mtDNA_CN.R ${out_prefix} ${region}
 
 rm ${out_prefix_at}
