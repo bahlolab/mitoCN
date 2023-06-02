@@ -7,6 +7,11 @@ set -euxo pipefail
 mosdepth=/wehisan/bioinf/lab_bahlo/software/apps/mosdepth/mosdepth_v0.2.9
 # module load R
 
+if [ ! -f "$mosdepth" ]; then
+    echo "$mosdepth does not exist."; 
+    exit 0;
+fi
+
 while getopts d:k:m:v:f:a:o: flag
 do
     case "${flag}" in
@@ -32,7 +37,7 @@ echo "Region: $region";
 if [[ "$mt" != "MT" && "$mt" != "chrM" ]]
 then
     echo "error: -m must be MT or chrM.";
-    exit 0;
+    exit 1;
 else
     if [[ "$mt" == "MT" ]]
     then
@@ -53,7 +58,7 @@ echo "fasta file: $ref_fasta";
 if [[ "$input_fmt" == "cram" && "$ref_fasta" == "" ]]
 then
     echo "error: fasta file must be provided for cram file.";
-    exit 1;
+    exit 2;
 fi
 
 ID=$(echo "$BAM_file" | awk '{ n=split($BAM_file, arr, "/"); print arr[n] }' | cut -d '.' -f 1)
