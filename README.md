@@ -17,9 +17,9 @@ If you use mitoCN, please acknowledge by citing
     
 * Install [R](https://www.r-project.org/).
 
-* Install [mosdepth](https://github.com/brentp/mosdepth). Add the location of `mosdepth` to mitoCN.sh using 
+* Install [mosdepth](https://github.com/brentp/mosdepth). Add the mosdepth to PATH using 
     ```
-    mosdepth=/path/to/mosdepth/mosdepth_version
+    export PATH="/path/to/mosdepth:$PATH"
     ```
 
 
