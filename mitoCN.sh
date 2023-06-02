@@ -3,14 +3,24 @@
 
 set -euxo pipefail
 
-# mosdepth=/path/to/mosdepth/mosdepth_version
-mosdepth=/wehisan/bioinf/lab_bahlo/software/apps/mosdepth/mosdepth_v0.2.9
-# module load R
-
-if [ ! -f "$mosdepth" ]; then
-    echo "$mosdepth does not exist."; 
+# check if mosdepth has been installed properly
+if type mosdepth > /dev/null 2>&1; then
+    echo "mosdepth has been installed."
+else
+    echo "mosdepth does not exist";
+    echo "please install mosdepth and add it to PATH";
     exit 0;
 fi
+
+# check if R has been installed properly
+if type mosdepth > /dev/null 2>&1; then
+    echo "R has been installed."
+else
+    echo "R does not exist";
+    echo "please install R and add it to PATH";
+    exit 1;
+fi
+
 
 while getopts d:k:m:v:f:a:o: flag
 do
@@ -37,7 +47,7 @@ echo "Region: $region";
 if [[ "$mt" != "MT" && "$mt" != "chrM" ]]
 then
     echo "error: -m must be MT or chrM.";
-    exit 1;
+    exit 2;
 else
     if [[ "$mt" == "MT" ]]
     then
@@ -58,7 +68,7 @@ echo "fasta file: $ref_fasta";
 if [[ "$input_fmt" == "cram" && "$ref_fasta" == "" ]]
 then
     echo "error: fasta file must be provided for cram file.";
-    exit 2;
+    exit 3;
 fi
 
 ID=$(echo "$BAM_file" | awk '{ n=split($BAM_file, arr, "/"); print arr[n] }' | cut -d '.' -f 1)
