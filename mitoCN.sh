@@ -111,17 +111,17 @@ fi
 ### coverage calculation
 if [[ "$input_fmt" == "bam" ]]
 then 
-    $mosdepth -b $BED_file_at -n -x -F 3844 -Q 30 $out_prefix_at $BAM_file
-    $mosdepth -b $BED_file_mt -n -x -F 3844 -Q 30 $out_prefix_mt $BAM_file
-    $mosdepth -b $BED_file_mt -n -x -F 2820 -Q 30 $out_prefix_mt_dup $BAM_file
-    $mosdepth -b $BED_file_x -n -x -F 3844 -Q 30 $out_prefix_x $BAM_file
-    $mosdepth -b $BED_file_y -n -x -F 3844 -Q 30 $out_prefix_y $BAM_file
+    mosdepth -b $BED_file_at -n -x -F 3844 -Q 30 $out_prefix_at $BAM_file
+    mosdepth -b $BED_file_mt -n -x -F 3844 -Q 30 $out_prefix_mt $BAM_file
+    mosdepth -b $BED_file_mt -n -x -F 2820 -Q 30 $out_prefix_mt_dup $BAM_file
+    mosdepth -b $BED_file_x -n -x -F 3844 -Q 30 $out_prefix_x $BAM_file
+    mosdepth -b $BED_file_y -n -x -F 3844 -Q 30 $out_prefix_y $BAM_file
 else
-    $mosdepth -b $BED_file_at -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_at $BAM_file
-    $mosdepth -b $BED_file_mt -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_mt $BAM_file
-    $mosdepth -b $BED_file_mt -f $ref_fasta -n -x -F 2820 -Q 30 $out_prefix_mt_dup $BAM_file
-    $mosdepth -b $BED_file_x -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_x $BAM_file
-    $mosdepth -b $BED_file_y -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_y $BAM_file
+    mosdepth -b $BED_file_at -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_at $BAM_file
+    mosdepth -b $BED_file_mt -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_mt $BAM_file
+    mosdepth -b $BED_file_mt -f $ref_fasta -n -x -F 2820 -Q 30 $out_prefix_mt_dup $BAM_file
+    mosdepth -b $BED_file_x -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_x $BAM_file
+    mosdepth -b $BED_file_y -f $ref_fasta -n -x -F 3844 -Q 30 $out_prefix_y $BAM_file
 fi
 
 gunzip ${out_prefix_at}.regions.bed.gz
