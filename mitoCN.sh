@@ -1,5 +1,5 @@
 #!/bin/bash
-#mitoCN 0.1.0
+# mitoCN 1.0.2
 
 set -euxo pipefail
 
