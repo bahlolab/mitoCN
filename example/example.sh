@@ -10,7 +10,9 @@ mitoCN_PATH=$(cd .. && pwd -P)
 DATA=${mitoCN_PATH}/example/data.tar.gz
 if [ ! -f "$DATA" ]; then
     echo "data.tar.gz does not exist."; 
-    echo "please download data.tar.gz into the example folder."; 
+    echo "please download data.tar.gz into the example folder using:"; 
+    echo "wget https://zenodo.org/record/7964357/files/data.tar.gz";
+    echo "mv data.tar.gz ${mitoCN_PATH}/example/data.tar.gz";
     exit 0;
 fi
 
