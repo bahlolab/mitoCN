@@ -1,7 +1,7 @@
 #!/bin/bash
 # mitoCN 1.0.2
 
-set -euxo pipefail
+set -euo pipefail
 
 # check if mosdepth has been installed properly
 if type mosdepth > /dev/null 2>&1; then
