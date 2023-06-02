@@ -13,7 +13,7 @@ else
 fi
 
 # check if R has been installed properly
-if type mosdepth > /dev/null 2>&1; then
+if type R > /dev/null 2>&1; then
     echo "R has been installed."
 else
     echo "R does not exist";
