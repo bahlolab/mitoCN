@@ -7,7 +7,14 @@ mitoCN_PATH=$(cd .. && pwd -P)
 # wget https://zenodo.org/record/7964357/files/data.tar.gz
 # mv data.tar.gz ${mitoCN_PATH}/example/data.tar.gz
 
-tar -xf ${mitoCN_PATH}/example/data.tar.gz
+DATA=${mitoCN_PATH}/example/data.tar.gz
+if [ ! -f "$DATA" ]; then
+    echo "$FILE does not exist."; 
+    echo "please download $FILE into the example folder."; 
+    exit 0;
+fi
+
+tar -xf $DATA
 
 # CRAM example with hg38 ref 
 CRAM=${mitoCN_PATH}/example/data/sample.cram
