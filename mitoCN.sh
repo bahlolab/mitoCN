@@ -37,7 +37,7 @@ done
 
 echo "mitoCN diretory: $work_dir";
 
-if [[ "$region" == "" ]] 
+if [ -z ${region:-} ]
 then
     region=k500;
 fi
