@@ -63,7 +63,6 @@ echo "BAM/CRAM file: $BAM_file";
 
 input_fmt=$(echo "$BAM_file" | awk '{ n=split($BAM_file, arr, "."); print arr[n] }')
 echo "Input format: $input_fmt";
-echo "fasta file: $ref_fasta";
 
 if [[ "$input_fmt" == "cram" && "$ref_fasta" == "" ]]
 then
