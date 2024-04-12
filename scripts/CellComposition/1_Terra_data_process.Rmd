@@ -1,0 +1,131 @@
+---
+title: Cell Composition Estimation
+author: Longfei Wang
+date: 09/01/2024
+---
+
+# Install Packages
+
+```{r}
+# install.packages("dplyr")
+# install.packages("ggplot2")
+# if (!require("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+# BiocManager::install("edgeR")
+
+rm(list = ls())
+
+library(dplyr)
+library(ggplot2)
+library(edgeR) #4.0.5
+library(biomaRt) #2.58.0
+
+# system("mkdir CellComp")
+setwd("/home/rstudio/CellComp")
+```
+
+# Load Data
+
+```{r}
+# download featureCounts matrix
+system("gsutil -u terra-3f9b7ae9 cp gs://amp-pd-transcriptomics/releases/2022_v3release_1115/rnaseq-WB-RWTS/subread/feature-counts/matrix.featureCounts.tsv .")
+
+# load featureCounts file
+fc <- read.table("matrix.featureCounts.tsv", header = T, sep = "\t")
+```
+
+# Organising gene annotations
+
+Ensembl ID -> HGNC symbol using biomRt
+
+```{r}
+geneid.v <- fc$Geneid
+fc$ensembl <- substring(fc$Geneid, 1, 15)
+# keeping only the first occurrence of each gene ID
+fc1 <- fc[!(duplicated(fc$ensembl)),]
+genes <- fc1$ensembl
+
+## biomaRt
+ensembl <- useEnsembl(biomart = "genes")
+ensembl.con <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+# attr <- listAttributes(ensembl.con)
+map <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol","start_position","end_position"),
+      filters = "ensembl_gene_id",
+      values = genes,
+      mart = ensembl.con)
+map1 <- map[map$hgnc_symbol != "",]
+map1$gene_length <- as.numeric(map1$end_position - map1$start_position + 1)
+fc2 <- merge(map1, fc1, by.x = "ensembl_gene_id", by.y = "ensembl", sort = F)
+
+# keeping only the first occurrence of each gene names
+fc3 <- fc2[!(duplicated(fc2$hgnc_symbol)),]
+anno <- fc3[,1:6]
+fc4 <- fc3[,c(-1,-(3:6))]
+```
+
+# convert raw counts to a DGEList object
+
+```{r}
+dge <- DGEList(counts=fc4[,-1], genes=fc4[,1])
+dge$genes <- anno[,c(1,2,5)]
+rownames(dge$counts) <- anno$hgnc_symbol
+samplenames <- colnames(dge$counts)
+```
+
+# Organising sample information
+
+```{r}
+# download WB RNAseq sample info
+system("gsutil -u terra-3f9b7ae9 cp gs://amp-pd-transcriptomics/releases/2022_v3release_1115/rnaseq-WB-RWTS/rnaseq_WB-RWTS_samples.csv .")
+
+meta <- read.csv("rnaseq_WB-RWTS_samples.csv", header = T)
+meta$study <- substring(meta$participant_id, 1, 2)
+table(meta$study, meta$visit_month)
+meta$batch <- paste0(meta$study,"_",meta$visit_month)
+meta$ID <- gsub("-", ".", meta$sample_id)
+
+meta1 <- meta[match(samplenames, meta$ID),] 
+dge$samples$batch <- meta1$batch
+dge$samples$study <- meta1$study
+
+```
+
+# Removing genes that are lowly expressed
+```{r}
+keep <- filterByExpr(dge)
+dge_filt <- dge[keep, , keep.lib.sizes=FALSE]
+dim(dge_filt)
+```
+
+# compute CPM/RPKM/TPM from a DGEList object
+```{r}
+cpm <- cpm(dge_filt)
+write.table(cpm, "cpm.txt", row.names = T, col.names = T, quote = F, sep = "\t")
+write.table(cpm[,1:10], "cpm.test.txt", row.names = T, col.names = T, quote = F, sep = "\t")
+
+rpkm <- rpkm(dge_filt, gene.length=dge_filt$genes$length)
+dim(rpkm)
+write.table(rpkm, "rpkm.txt", row.names = T, col.names = T, quote = F, sep = "\t")
+write.table(rpkm[,1:10], "rpkm.test.txt", row.names = T, col.names = T, quote = F, sep = "\t")
+
+tpm <- t( t(rpkm) / colSums(rpkm) ) * 1e6
+write.table(tpm, "tpm.txt", row.names = T, col.names = T, quote = F, sep = "\t")
+write.table(tpm[,1:10], "tpm.test.txt", row.names = T, col.names = T, quote = F, sep = "\t")
+
+```
+
+# Run xCell
+```{r}
+library(xCell)
+xcell.all.cells <- xCellAnalysis(rpkm[,1:10])
+rownames(xcell.all.cells)
+cell.types.use <- rownames(xcell.all.cells)[grep('CD', rownames(xcell.all.cells))]
+cell.types.use <- c(cell.types.use, 'Neutrophils', 'Platelets', 'NKT', 'NK cells',
+                    'Basophils', 'B-cells', 'Eosinophils', 'Erythrocytes', 'HSC',
+                    'Macrophages', 'Macrophages M1', 'Macrophages M2', 'Mast cells',
+                    'Megakaryocytes', 'Memory B-cells', 'Monocytes', 'Plasma cells',
+                    'Tregs', 'Th1 cells', 'Th2 cells')
+xcell.blood.only <- xCellAnalysis(rpkm[,1:10], cell.types.use = cell.types.use) 
+
+save(xcell.all.cells, file = 'xcell.all.cells.rds')
+```
