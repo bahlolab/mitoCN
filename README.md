@@ -76,6 +76,7 @@ crh20 | 59s | 29s | 27s
 ## Docker Usage
 
 ### Running
+A pre-built docker image is provided for convenience.
 Ensure all your input data (crams, fastas etc are in a single `data` directory), then:
 ```bash
 docker run --volume /path/to/data:/data ghcr.io/wehi-researchcomputing/mitocn -f /data/sample.cram -a /data/reference.fa -v hg38 -m chrM -k k500 -o /tmp/out
