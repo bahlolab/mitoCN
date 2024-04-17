@@ -73,5 +73,20 @@ k500 | 10m23s | 5m12s | 5m7s
 chr1 | 1m50s | 56s | 50s
 crh20 | 59s | 29s | 27s
 
+## Docker Usage
+### Building 
+```bash
+git clone git@github.com:bahlolab/mitoCN.git
+docker build mitoCN --tag mitocn
+```
+
+### Running
+Ensure all your input data (crams, fastas etc are in a single `data` directory), then:
+```bash
+docker run --volume /path/to/data:/data ghcr.io/wehi-researchcomputing/mitocn -f /data/sample.cram -a /data/reference.fa -v hg38 -m chrM -k k500 -o /tmp/out
+```
+
+###
+
 ## Funding
 This work is supported by the Michael J. Fox Foundation and the Shake It Up Australia Foundation through Spring 2022 RFA: Parkinson’s Pathway Molecular Data Analysis Program. 
