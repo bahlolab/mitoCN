@@ -1,5 +1,6 @@
 ---
 title: "UKB mtDNA-CN Analysis"
+author: "Jiru Han"
 output:
   html_document:
     code_folding: "hide"
@@ -33,16 +34,16 @@ sensible_names <- function(x){
 knitr::opts_chunk$set(tidy="styler")
 ```
 
-### Check Batch effects
+
+<span style="color:blue">**Check Batch effects (cases)**</span>
 
 ```{r,message=FALSE, warning=FALSE, eval=TRUE}
-#WGS cohort of approximately 200k individuals (released on late 2021)
 ukbdata <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20231124_mtDNA_ukbb_summary.csv")
 ukbdata <- ukbdata %>% 
   filter(Parkinsons=="Y")  %>% 
   mutate(Data="Batch1")  %>% 
   dplyr::select(sample,Data,genetic_sex, mt,Blood_Collection_Age,logmt)
-#new ~500k release (released on late 2023) additional PD cases data 
+#New data
 additional_pd_case1 <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240220_mtDNA_ukbb_additional_pd_summary.csv")
 additional_pd_case1 <- additional_pd_case1 %>% 
   mutate(Data="Batch2") %>% 
@@ -52,6 +53,7 @@ additional_pd_case2 <- additional_pd_case2 %>%
   mutate(Data="Batch2") %>% 
   dplyr::select(sample,Data,genetic_sex, mt,Blood_Collection_Age,logmt)
 additional_pd_case <- do.call(rbind,list(additional_pd_case1,additional_pd_case2))
+
 all <- do.call(rbind,list(ukbdata,additional_pd_case))
 all %>% 
   dplyr::select(sample,Data,genetic_sex, mt,Blood_Collection_Age,logmt) %>% 
@@ -73,6 +75,7 @@ all %>%
   geom_boxplot()+
   labs(y="logmt")
 
+
 old <- all %>% 
   filter(Data=="Batch1")
 new <- all %>% 
@@ -84,9 +87,7 @@ t.test(old$logmt, y = new$logmt,
 
 <br>
 
-### Check log(mtDNA-CN) distribution
-
-<span style="color:blue">**UKBBdata table (combine boold cell composition & remove NA)**</span>
+<span style="color:blue">UKBBdata table (combine boold cell composition & remove NA)</span>
 
 ```{r,message=FALSE, warning=FALSE, eval=TRUE}
 # load mtDNA-CN results
@@ -135,19 +136,37 @@ ukbdata <- ukbdata %>%
 ukbdata %>% 
    as.tibble()
 mtDNA_ukbb_summary_PD_blood <- ukbdata
+```
+
+
+
+<br>
+
+### 1. Check log(mtDNA-CN) distribution using histogram.
+
+<span style="color:blue">**logmt**</span>
+
+```{r,message=FALSE, warning=FALSE, eval=TRUE}
 ukbdata <- mtDNA_ukbb_summary_PD_blood
 range(ukbdata$logmt)
 hist(ukbdata$logmt)
-
 ```
+
 
 <br>
 
 <hr>
 
-### Boold cell composition QC
+### 2. Stepwise model section with both direction:
+
+logmt ~ blood cell variables
+
+adjusted mt: residual of logmt ~ selected variables
+ 
+### Adjust the boold cell composition
 
 <span style="color:blue">**UKBB boold cell measurements**</span>
+
 
 ```{r, message=FALSE, warning=FALSE, eval=TRUE}
 blood_measure <- read.csv("Blood_Measurements.csv")
@@ -162,6 +181,10 @@ datatable(blood_measure,
 
 <br>
 
+<span style="color:blue">**UKBB boold cell composition data**</span>
+
+### Cell composition correction
+
 <span style="color:blue">Remove high missing blood cell type > 1%</span>
 
 ```{r, message=FALSE, warning=FALSE, eval=TRUE}
@@ -174,20 +197,26 @@ data <- data %>%
   dplyr::select(-rownames(data_miss))
 ```
 
-<span style="color:blue">Select cell types percentage with proportion > 1%</span>
+<span style="color:blue">Blood cell type QC: select cell types percentage with proportion > 1%</span>
+
+remove "Basophill percentage/count","Nucleated red blood cell percentage/count"
 
 ```{r, message=FALSE, warning=FALSE, eval=TRUE}
+# QC: select cell types percentage with proportion > 1%
 cell_percentage <- data %>% 
   dplyr::select(sample,matches("percentage"))
 vars <- c(colnames(cell_percentage[,2:8])[colMeans(cell_percentage[,2:8], na.rm = TRUE) < 1])
+# remove "Basophill percentage","Nucleated red blood cell percentage"
 vars
+#Basophill percentage 0.5713607
+#Nucleated red blood cell percentage 0.03244037
 data <- data %>% 
   dplyr::select(-c(vars,`Basophill count`,`Nucleated red blood cell count`))
 ```
 
 
 
-<span style="color:blue">Remove all the RBC measurements</span>
+<span style="color:blue">**Remove all the RBC measurements**</span>
 
 The blood measurements associated with Red Blood Cells (RBCs) are:
 Red blood cell (erythrocyte) count
@@ -218,7 +247,27 @@ mtDNA_ukbb_summary_PD_blood_correction <- data
 ```
 
 
-<span style="color:blue">The associations of various blood compositions with PD diagnosis</span>
+
+<span style="color:blue">**Boold cell composition correlation matrix plot without RBC measurements (after remove high missing rate > 1% & cell types percentage with proportion < 1%)**</span>
+
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE,fig.width=15,fig.height=15}
+data <- mtDNA_ukbb_summary_PD_blood_correction
+ggcorrmat(data[,-c(1,2,3,4,6:12)],colors   = c("#B2182B", "white", "#4D4D4D"),
+          ggcorrplot.args = list(method = "square", outline.color = "black",lab_size = 3),
+          number.cex = 0.1,
+          matrix.type  = "lower")
+```
+
+
+<span style="color:blue">**PD_diagnosis & Boold cell composition**</span>
+
+<span style="color:blue">blood var rlm ~ PD_diagnosis + age + sex + Batch + PC1-5</span>
+
+blood var rlm ~ PD_diagnosis estimate
+
+We also randomly excluded one individual from any pair of related individuals with a genomic relationship larger than 0.05. After these QC steps, 288,837 unrelated individuals and 1,130,918 SNPs remained.
+
 
 ```{r, message=FALSE, warning=FALSE, eval=TRUE}
 data <- mtDNA_ukbb_summary_PD_blood_correction
@@ -230,6 +279,12 @@ data <- data %>%
   na.omit()
 data <- data %>% 
   mutate(NLR=`Neutrophill percentage`/`Lymphocyte percentage`)
+
+#Check relatedness
+related_remove <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/scratch/20240417_parkinsons_mitocn/20240417_mwvc_pd_filter.txt_MWVC.txt")
+data <- data %>% 
+  filter(!(sample %in% related_remove$V1))
+
 measure <- colnames(data)[13:ncol(data)]
 result <- list()
 for (i in 1:length(measure)) {
@@ -256,7 +311,10 @@ rlm_result_end <- data.frame(
   p.adj=ifelse(rlm_result$p.adj < 0.0001,"p<0.0001",round(rlm_result$p.adj,4))
 )
 
+
 colnames(rlm_result_end) <- c("Blood_measurement","Estimate","Std. Error","t value","Pr(>|t|)", "P.adj")
+#write.csv(rlm_result_end,"Blood_measurement_PDdiagnosis.csv",row.names = FALSE)
+
 datatable(rlm_result_end,
   extensions = "Buttons",
   rownames = FALSE,
@@ -270,7 +328,17 @@ datatable(rlm_result_end,
 
 ```
 
-### Association test of raw and adjusted blood mtDNA-CN with PD risk 
+
+### Model selection
+
+
+<span style="color:blue">**Blood percentage & count-based measure**</span>
+
+
+Because some measurements do not have percentages, we will still use counts instead for these measurements
+
+
+**Full model**
 
 ```{r, message=FALSE, warning=FALSE, eval=TRUE}
 #Blood count-based measure
@@ -280,21 +348,40 @@ data <- data %>%
   dplyr::select(sample,mt,sex,age,logmt, Batch,PC1,PC2,PC3,PC4,PC5,diagnosis,
                 `White blood cell (leukocyte) count`,`Platelet count`,`Platelet crit`,
                 `Mean platelet (thrombocyte) volume`,`Platelet distribution width`,
+                #`Lymphocyte count`,`Monocyte count`,`Neutrophill count`,`Eosinophill count`
                 `Lymphocyte percentage`,`Monocyte percentage`,`Neutrophill percentage`,`Eosinophill percentage`
                 )
+#Check relatedness
+related_remove <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/scratch/20240417_parkinsons_mitocn/20240417_mwvc_pd_filter.txt_MWVC.txt")
+data <- data %>% 
+  filter(!(sample %in% related_remove$V1))
 mt_data <- data %>% 
   na.omit()
+#166663     21
 ### model selection
 # full model
 m0 <- lm(logmt ~ ., data = mt_data[,-c(1,2,3,4,6:12)])
 summary(m0)
+```
+
+
+<br>
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE,results='hide'}
 m1 <- step(m0, direction = "both")
-summary(m1)
 ```
 
 
 
-<span style="color:blue">**Adjust the logmt (correcting for blood composition)**</span>
+**Step-wise regression**
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+summary(m1) #R2 = 19%
+```
+
+
+
+### Adjust the logmt
 
 ```{r, message=FALSE, warning=FALSE, eval=TRUE}
 # cell composition correction
@@ -304,6 +391,7 @@ adj.mt <- adj.mt %>%
   dplyr::select(sample,mt,logmt,mt.adj,Batch,sex,age,PC1,  PC2, PC3, PC4, PC5, diagnosis)
 adj.mt %>% 
   as.tibble()
+
 mtDNA_ukbb_summary_PD_blood_correction_adj.mt <- adj.mt
 ```
 
@@ -312,11 +400,19 @@ mtDNA_ukbb_summary_PD_blood_correction_adj.mt <- adj.mt
 <hr>
 
 
+# Step 3
+Adjusted mt ~ PD diagnosis + age + sex + Batch + PC1-5
+
+
+### Test the associations between mtDNA-CN (raw vs adjusted) and PD diagnosis
+
+
 <span style="color:blue">mtDNA-CN (raw) and PD diagnosis</span>
 
 ```{r, message=FALSE, warning=FALSE, eval=TRUE}
 # association test
 data <- mtDNA_ukbb_summary_PD_blood_correction_adj.mt
+# association test
 data$diagnosis <- factor(data$diagnosis, level = c("Control", "Case"))
 data$sex <- factor(data$sex, level = c("Female", "Male"))
 data$Batch <- factor(data$Batch, level = c("1", "2"))
@@ -370,21 +466,142 @@ res$study <- c("UKBB")
 res
 res_adj <- res %>% 
   mutate(type="logmtAdjusted")
+```
+
+
+<br>
+
+<hr>
+
+
+
+# Step 4
+
+Make a table to compare between raw and adjusted mt
+
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
 res_all <- do.call(rbind,list(res_raw,res_adj))
 res_all <- res_all %>% 
   mutate(SelectVariable=c("", "White blood cell (leukocyte) count; Platelet count; Platelet crit; Mean platelet (thrombocyte) volume; Platelet distribution width; Lymphocyte percentage; Monocyte percentage; Neutrophill percentage; Eosinophill percentage"))
+res_all
 ```
+
+
+
+
+
+
+
+
+
+
 
 <br>
 
 
-### Association test results of raw and adjusted blood mtDNA-CN with PD risk in the UKB cohort
+<span style="color:blue">Scatter plot age vs logmt & adjusted logmt</span>
+
+```{r,warning=FALSE,message=FALSE,echo=FALSE}
+theme_Publication <- function(base_size=14, base_family="helvetica") {
+      library(grid)
+      library(ggthemes)
+      (theme_foundation(base_size=base_size, base_family=base_family)
+       + theme(plot.title = element_text(face = "bold",
+                                         size = rel(1.2), hjust = 0.5),
+               text = element_text(),
+               panel.background = element_rect(colour = NA),
+               plot.background = element_rect(colour = NA),
+               panel.border = element_rect(colour = NA),
+               axis.title = element_text(face = "bold",size = rel(1)),
+               axis.title.y = element_text(angle=90,vjust =2),
+               axis.title.x = element_text(vjust = -0.2),
+               axis.text = element_text(), 
+               axis.line = element_line(colour="black"),
+               axis.ticks = element_line(),
+               panel.grid.major = element_line(colour="#f0f0f0"),
+               panel.grid.minor = element_blank(),
+               legend.key = element_rect(colour = NA),
+               legend.position = "bottom",
+               legend.direction = "horizontal",
+               legend.key.size= unit(0.2, "cm"),
+               legend.margin = unit(0, "cm"),
+               legend.title = element_text(face="italic"),
+               plot.margin=unit(c(10,5,5,5),"mm"),
+               strip.background=element_rect(colour="#f0f0f0",fill="#f0f0f0"),
+               strip.text = element_text(face="bold")
+          ))
+      
+}
+
+```
+
+
+
+
+```{r,message=FALSE, warning=FALSE, eval=TRUE}
+#166663
+data <- mtDNA_ukbb_summary_PD_blood_correction_adj.mt
+scatter_plot <- data %>% 
+  dplyr::select(sample,sex,age,diagnosis,Batch,logmt,mt.adj) %>% 
+  pivot_longer(cols = logmt:mt.adj,
+               names_to = "logmt",
+               values_to = "Value")
+
+
+scatter_plot$logmt[scatter_plot$logmt =="logmt"] <- "mtCNraw"
+scatter_plot$logmt[scatter_plot$logmt =="mt.adj"] <- "mtCNadj"
+
+scatter_plot$logmt <- factor(scatter_plot$logmt,levels = c("mtCNraw","mtCNadj"))
+colnames(scatter_plot)[2] <- "Sex"
+
+
+#mtCNraw
+
+p1 <- scatter_plot %>% 
+  filter(logmt=="mtCNraw") %>% 
+  ggplot(aes(x=age,y=Value,color=Sex))+
+  geom_point(alpha=0.1)+
+  geom_smooth(method = "lm",size = 2)+
+  stat_cor()+
+  #facet_grid(logmt~.,space = "free",scales = "free")+
+  ggsci::scale_color_npg()+
+  #theme_bw()+
+  #ggthemes::theme_calc()+
+  theme_Publication()+
+  labs(x="Age",y="log-transformed mtDNA copy number")
+
+
+p2 <- scatter_plot %>% 
+  filter(logmt=="mtCNadj") %>% 
+  ggplot(aes(x=age,y=Value,color=Sex))+
+  geom_point(alpha=0.1)+
+  geom_smooth(method = "lm",size = 2)+
+  stat_cor()+
+  #facet_grid(logmt~.,space = "free",scales = "free")+
+  ggsci::scale_color_npg()+
+  #theme_bw()+
+  #ggthemes::theme_calc()+
+  theme_Publication()+
+  labs(x="Age",y="Adjusted mtDNA copy number")
+#(Blood cell composition correction)
+
+ggpubr::ggarrange(p1,p2,nrow=1,common.legend = TRUE,legend="bottom")
+#1500 700
+```
+
+
+<br>
+
+
+### Summary table logmt & mt.adj ~ sex, age, Batch, diagnosis, PC1-5
 
 ```{r, message=FALSE, warning=FALSE, eval=TRUE}
 #Test the associations between mtDNA-CN (raw vs adjusted) and PD diagnosis
 #mtDNA-CN raw
 # association test
 data <- mtDNA_ukbb_summary_PD_blood_correction_adj.mt
+# association test
 data$diagnosis <- factor(data$diagnosis, level = c("Control", "Case"))
 data$sex <- factor(data$sex, level = c("Female", "Male"))
 data$Batch <- factor(data$Batch, level = c("1", "2"))
@@ -395,7 +612,7 @@ res <- summary(lm.dx <- rlm(formula = logmt ~ diagnosis + sex + age + Batch + PC
                             data = test))$coefficients
 
 #confindence level
-confint_diagnosisCase <- confint.default(object = lm.dx, parm = "diagnosisCase", level = 0.95)
+confint.default(object = lm.dx, parm = "diagnosisCase", level = 0.95)
 
 res <- data.frame(
   var=rownames(res),
@@ -415,9 +632,13 @@ res_raw <- data.frame(
 )
 colnames(res_raw)[1:7] <- c("Type","Variable","Estimate","Std. Error","t value","Pr(>|t|)","Nsample")
 
+
+
+
 #mtDNA-CN adjusted
 # association test
 data <- mtDNA_ukbb_summary_PD_blood_correction_adj.mt
+# association test
 data$diagnosis <- factor(data$diagnosis, level = c("Control", "Case"))
 data$sex <- factor(data$sex, level = c("Female", "Male"))
 data$Batch <- factor(data$Batch, level = c("1", "2"))
@@ -428,7 +649,7 @@ res <- summary(lm.dx <- rlm(formula = mt.adj ~ diagnosis + sex + age + Batch + P
                             data = test))$coefficients
 
 #confindence level
-confint_diagnosisCase <- confint.default(object = lm.dx, parm = "diagnosisCase", level = 0.95)
+confint.default(object = lm.dx, parm = "diagnosisCase", level = 0.95)
 
 res <- data.frame(
   var=rownames(res),
@@ -466,3 +687,7 @@ datatable(res_all_end,
                           buttons = c('copy', 'csv', 'excel')),
           escape = F)
 ```
+
+
+
+
