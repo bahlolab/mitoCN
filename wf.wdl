@@ -14,7 +14,7 @@ task mitoCN {
         # See docs for the -m flag
         String mt_name
         # See docs for the -k flag
-        Int bins
+        String bins
 
         # Sensible default resources
         String memory = "25G"
@@ -35,10 +35,12 @@ task mitoCN {
        memory: memory
     }
     command {
-        ./mitoCN.sh -d /app -f ~{cram.main_file} -a ~{reference.main_file} -v ~{reference_version} -m ~{mt_name} -k ~{bins} -o ./out
+        # Although the environment should be activated in the bashrc, this ensures this has happened
+        source /usr/local/bin/_activate_current_env.sh
+        /app/mitoCN.sh -d /app -f ~{cram.main_file} -a ~{reference.main_file} -m ~{mt_name} -v ~{reference_version} -k ~{bins} -o ./out
     }
     output {
-        File result = glob("out/*.txt")[0]
+        File result = glob("out/*.mitoCN.txt")[0]
     }
 }
 

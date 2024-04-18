@@ -5,4 +5,4 @@ WORKDIR /app
 COPY mitoCN.sh mtDNA_CN.R .
 COPY hg19 hg19
 COPY hg38 hg38
-ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "./mitoCN.sh", "-d", "/app"]
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "/app/mitoCN.sh", "-d", "/app"]
