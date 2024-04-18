@@ -71,7 +71,7 @@ option | real time | user time | system time
 --- | --- | --- | ---
 k500 | 10m23s | 5m12s | 5m7s
 chr1 | 1m50s | 56s | 50s
-crh20 | 59s | 29s | 27s
+chr20 | 59s | 29s | 27s
 
 ## Funding
 This work is supported by the Michael J. Fox Foundation and the Shake It Up Australia Foundation through Spring 2022 RFA: Parkinson’s Pathway Molecular Data Analysis Program. 
