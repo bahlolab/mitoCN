@@ -35,12 +35,18 @@ task mitoCN {
        memory: memory
     }
     command {
+        set -e
+
         # Although the environment should be activated in the bashrc, this ensures this has happened
         source /usr/local/bin/_activate_current_env.sh
         /app/mitoCN.sh -d /app -f ~{cram.main_file} -a ~{reference.main_file} -m ~{mt_name} -v ~{reference_version} -k ~{bins} -o ./out
+
+        # Copy the result file into the cwd
+        shopt -s globstar
+        mv out/**/*.mitoCN.txt .
     }
     output {
-        File result = glob("out/*.mitoCN.txt")[0]
+        File result = glob("*.mitoCN.txt")[0]
     }
 }
 
