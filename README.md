@@ -89,5 +89,10 @@ git clone git@github.com:bahlolab/mitoCN.git
 docker build mitoCN --tag ghcr.io/wehi-researchcomputing/mitocn
 ```
 
+## WDL Usage
+
+`wf.wdl` provides a way to run mitoCN as part of a WDL workflow, which can allow you to use it in cloud environments such as Terra.
+The WDL task pulls the premade docker image, meaning that simply uploading the `wf.wdl` is all you need to enable this workflow.
+
 ## Funding
 This work is supported by the Michael J. Fox Foundation and the Shake It Up Australia Foundation through Spring 2022 RFA: Parkinson’s Pathway Molecular Data Analysis Program. 
