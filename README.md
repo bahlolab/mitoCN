@@ -6,7 +6,7 @@ Please contact the author, Longfei Wang <wang.lo@wehi.edu.au>, if you would like
 
 ## Citation
 If you use mitoCN, please acknowledge by citing 
-"Longfei Wang, Liam G. Fearnley, Terence P. Speed and Melanie Bahlo. **mitoCN: a fast and robust mitochondrial DNA copy number estimator using whole-genome sequencing data.** [![DOI](https://zenodo.org/badge/621654308.svg)](https://zenodo.org/badge/latestdoi/621654308)"
+"Longfei Wang, Liam G. Fearnley, Michael Milton, Terence P. Speed and Melanie Bahlo. **mitoCN: a fast and robust mitochondrial DNA copy number estimator using whole-genome sequencing data.** [![DOI](https://zenodo.org/badge/621654308.svg)](https://zenodo.org/badge/latestdoi/621654308)"
 
 ## Installation
 * Clone this repository
