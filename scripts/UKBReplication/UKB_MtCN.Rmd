@@ -38,25 +38,21 @@ knitr::opts_chunk$set(tidy="styler")
 <span style="color:blue">**Check Batch effects (cases)**</span>
 
 ```{r,message=FALSE, warning=FALSE, eval=TRUE}
-ukbdata <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20231124_mtDNA_ukbb_summary.csv")
+ukbdata <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240423_mtDNA_ukbb_batch1_batch2_summary.csv")
+batch <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240423_UKBB_eid_sequencing_batch.tsv")
 ukbdata <- ukbdata %>% 
-  filter(Parkinsons=="Y")  %>% 
-  mutate(Data="Batch1")  %>% 
-  dplyr::select(sample,Data,genetic_sex, mt,Blood_Collection_Age,logmt)
-#New data
-additional_pd_case1 <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240220_mtDNA_ukbb_additional_pd_summary.csv")
-additional_pd_case1 <- additional_pd_case1 %>% 
-  mutate(Data="Batch2") %>% 
-  dplyr::select(sample,Data,genetic_sex, mt,Blood_Collection_Age,logmt)
-additional_pd_case2 <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240228_mtDNA_ukbb_additional_pd_summary.csv")
-additional_pd_case2 <- additional_pd_case2 %>% 
-  mutate(Data="Batch2") %>% 
-  dplyr::select(sample,Data,genetic_sex, mt,Blood_Collection_Age,logmt)
-additional_pd_case <- do.call(rbind,list(additional_pd_case1,additional_pd_case2))
-
-all <- do.call(rbind,list(ukbdata,additional_pd_case))
+  full_join(batch,by=c("sample"="eid"))
+#Withdrawn participants
+withdrawn <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/w36610_2023-04-25.csv")
+ukbdata <- ukbdata %>% 
+  filter(!(sample %in% withdrawn$V1))
+#485443
+all <- ukbdata %>% 
+  filter(Parkinsons=="Y") %>% 
+  dplyr::select(sample,batch, genetic_sex, mt,Blood_Collection_Age,logmt)
+colnames(all)[2] <- "Data"
+all$Data <- as.character(all$Data)
 all %>% 
-  dplyr::select(sample,Data,genetic_sex, mt,Blood_Collection_Age,logmt) %>% 
   pivot_longer(cols = mt:logmt,
                names_to = "Type",
                values_to = "Value") %>% 
@@ -77,9 +73,9 @@ all %>%
 
 
 old <- all %>% 
-  filter(Data=="Batch1")
+  filter(Data=="1")
 new <- all %>% 
-  filter(Data=="Batch2")
+  filter(Data=="2")
 t.test(old$logmt, y = new$logmt,
        alternative = "two.sided")
 ```
@@ -91,20 +87,20 @@ t.test(old$logmt, y = new$logmt,
 
 ```{r,message=FALSE, warning=FALSE, eval=TRUE}
 # load mtDNA-CN results
-ukbdata <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20231124_mtDNA_ukbb_summary.csv")
+ukbdata <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240423_mtDNA_ukbb_batch1_batch2_summary.csv")
+batch <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240423_UKBB_eid_sequencing_batch.tsv")
 ukbdata <- ukbdata %>% 
-  mutate(Batch=1) %>% 
-  dplyr::select(sample,mt,genetic_sex,Blood_Collection_Age,logmt,Batch,PC1,PC2,PC3,PC4,PC5,Parkinsons)
+  full_join(batch,by=c("sample"="eid"))
+#Withdrawn participants
+withdrawn <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/w36610_2023-04-25.csv")
+ukbdata <- ukbdata %>% 
+  filter(!(sample %in% withdrawn$V1))
+#485443
 
-new1 <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240220_mtDNA_ukbb_additional_pd_summary.csv")
-new1 <- new1 %>% 
-  mutate(Batch=2) %>% 
-  dplyr::select(sample,mt,genetic_sex,Blood_Collection_Age,logmt,Batch,PC1,PC2,PC3,PC4,PC5,Parkinsons)
-new2 <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240228_mtDNA_ukbb_additional_pd_summary.csv")
-new2 <- new2 %>% 
-  mutate(Batch=2) %>% 
-  dplyr::select(sample,mt,genetic_sex,Blood_Collection_Age,logmt,Batch,PC1,PC2,PC3,PC4,PC5,Parkinsons)
-ukbdata <- do.call(rbind,list(ukbdata,new1,new2))
+ukbdata <- ukbdata %>% 
+  dplyr::select(sample,mt,genetic_sex,Blood_Collection_Age,logmt,batch,PC1,PC2,PC3,PC4,PC5,Parkinsons)
+colnames(ukbdata)[6] <- "Batch"
+
 ukbdata <- ukbdata %>% 
   dplyr::select(sample,mt,genetic_sex,Blood_Collection_Age,logmt,Batch,PC1,PC2,PC3,PC4,PC5,Parkinsons) %>% 
   mutate(PD_diagnosis = ifelse(Parkinsons=="Y","Case","Control")) %>% 
@@ -208,8 +204,9 @@ cell_percentage <- data %>%
 vars <- c(colnames(cell_percentage[,2:8])[colMeans(cell_percentage[,2:8], na.rm = TRUE) < 1])
 # remove "Basophill percentage","Nucleated red blood cell percentage"
 vars
-#Basophill percentage 0.5713607
-#Nucleated red blood cell percentage 0.03244037
+#colMeans(cell_percentage[,2:8], na.rm = TRUE)
+#Basophill percentage 0.56998017 
+#Nucleated red blood cell percentage 0.03505115 
 data <- data %>% 
   dplyr::select(-c(vars,`Basophill count`,`Nucleated red blood cell count`))
 ```
@@ -266,7 +263,6 @@ ggcorrmat(data[,-c(1,2,3,4,6:12)],colors   = c("#B2182B", "white", "#4D4D4D"),
 
 blood var rlm ~ PD_diagnosis estimate
 
-We also randomly excluded one individual from any pair of related individuals with a genomic relationship larger than 0.05. After these QC steps, 288,837 unrelated individuals and 1,130,918 SNPs remained.
 
 
 ```{r, message=FALSE, warning=FALSE, eval=TRUE}
@@ -279,12 +275,12 @@ data <- data %>%
   na.omit()
 data <- data %>% 
   mutate(NLR=`Neutrophill percentage`/`Lymphocyte percentage`)
-
+#431093
 #Check relatedness
-related_remove <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/scratch/20240417_parkinsons_mitocn/20240417_mwvc_pd_filter.txt_MWVC.txt")
+related_remove <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240426_mwvc_pd_todrop.txt_MWVC.txt")
 data <- data %>% 
   filter(!(sample %in% related_remove$V1))
-
+#367322
 measure <- colnames(data)[13:ncol(data)]
 result <- list()
 for (i in 1:length(measure)) {
@@ -352,12 +348,12 @@ data <- data %>%
                 `Lymphocyte percentage`,`Monocyte percentage`,`Neutrophill percentage`,`Eosinophill percentage`
                 )
 #Check relatedness
-related_remove <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/scratch/20240417_parkinsons_mitocn/20240417_mwvc_pd_filter.txt_MWVC.txt")
+related_remove <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240426_mwvc_pd_todrop.txt_MWVC.txt")
 data <- data %>% 
   filter(!(sample %in% related_remove$V1))
 mt_data <- data %>% 
   na.omit()
-#166663     21
+#367322     21
 ### model selection
 # full model
 m0 <- lm(logmt ~ ., data = mt_data[,-c(1,2,3,4,6:12)])
@@ -540,7 +536,7 @@ theme_Publication <- function(base_size=14, base_family="helvetica") {
 
 
 ```{r,message=FALSE, warning=FALSE, eval=TRUE}
-#166663
+#367322
 data <- mtDNA_ukbb_summary_PD_blood_correction_adj.mt
 scatter_plot <- data %>% 
   dplyr::select(sample,sex,age,diagnosis,Batch,logmt,mt.adj) %>% 
