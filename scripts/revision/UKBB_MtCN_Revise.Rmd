@@ -1,0 +1,624 @@
+---
+title: "UKB mtDNA-CN Analysis Revise"
+author: "Jiru Han"
+output:
+  html_document:
+    code_folding: "hide"
+  df_print: paged
+---
+
+
+
+```{r setup, include=FALSE} 
+library(tidyverse)
+library(magrittr)
+library(data.table)
+library(pander)
+library(plotly)
+library(KRIS)
+library(MASS)
+library(sfsmisc)
+library(DT)
+library(ggpubr)
+library(ggstatsplot)
+select <- dplyr::select
+
+# formatting functions
+sensible_names <- function(x){
+  colnames(x) %<>%
+    str_replace_all('[ -//]+', '.') %>%
+    str_to_lower()
+  x
+}
+
+knitr::opts_chunk$set(tidy="styler")
+```
+
+
+
+
+1. In the introduction section the authors discuss previous publications linking lower mtDNA-CN to PD risk. One study (Muller-Nedebock et al 2022) however showed increased blood derived mtDNA-CN in African patients, contradicting findings from other PD studies. It would be interesting to extract data from PD individuals with African ancestry from these large datasets to see whether there are differences in immunce cell distribution and the risk for PD. 
+
+
+#Restricted to African ancestry 
+
+<span style="color:blue">UKBBdata table (combine boold cell composition & remove NA)</span>
+
+```{r,message=FALSE, warning=FALSE, eval=TRUE}
+# load mtDNA-CN results
+ukbdata <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240423_mtDNA_ukbb_batch1_batch2_summary.csv")
+batch <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240423_UKBB_eid_sequencing_batch.tsv")
+ukbdata <- ukbdata %>% 
+  full_join(batch,by=c("sample"="eid"))
+#Withdrawn participants
+withdrawn <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/w36610_2023-04-25.csv")
+ukbdata <- ukbdata %>% 
+  filter(!(sample %in% withdrawn$V1))
+#485443
+ukbdata <- ukbdata %>% 
+  dplyr::select(sample,mt,genetic_sex,Blood_Collection_Age,logmt,batch,PC1,PC2,PC3,PC4,PC5,Parkinsons)
+colnames(ukbdata)[6] <- "Batch"
+
+ukbdata <- ukbdata %>% 
+  dplyr::select(sample,mt,genetic_sex,Blood_Collection_Age,logmt,Batch,PC1,PC2,PC3,PC4,PC5,Parkinsons) %>% 
+  mutate(PD_diagnosis = ifelse(Parkinsons=="Y","Case","Control")) %>% 
+  dplyr::select(-Parkinsons) %>% 
+  na.omit()
+colnames(ukbdata) <- c("sample", "mt", "sex", "age","logmt", "Batch", "PC1","PC2", "PC3","PC4", "PC5", "diagnosis")
+#boold cell composition
+data <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/extracts/20240118_673741_ukb_blood.csv.gz")
+data <- data %>% 
+  dplyr::select(eid,matches("0-0.0")) %>% 
+  dplyr::select(eid,where(is.numeric))
+data <- data %>%   
+  pivot_longer(!eid,
+               names_to = "FieldIDNew",
+               values_to = "Value")
+dic <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/extracts/20240219_Data_Dictionary_Showcase.csv")
+dic <- dic %>% 
+  dplyr::select(FieldID,Field)
+dic <- dic %>% 
+  mutate(FieldIDNew=paste0(FieldID,"-0.0"))
+data <- data %>% 
+  left_join(dic)
+data <- data %>% 
+  dplyr::select(eid,Field,Value) %>% 
+  pivot_wider(names_from = Field,
+              values_from = Value)
+ukbdata <- ukbdata %>% 
+  left_join(data,by=c("sample"="eid"))
+ukbdata %>% 
+   as.tibble()
+mtDNA_ukbb_summary_PD_blood <- ukbdata
+```
+
+
+<br>
+
+<hr>
+
+<span style="color:blue">**UKBB boold cell composition data**</span>
+
+### Cell composition correction
+
+<span style="color:blue">Remove high missing blood cell type > 1%</span>
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+#Remove high missing cell type
+data <- mtDNA_ukbb_summary_PD_blood
+data_miss <- data.frame(miss=colSums(is.na(data))/nrow(data)*100) %>% 
+  filter(miss>1)
+data_miss
+data <- data %>% 
+  dplyr::select(-rownames(data_miss))
+```
+
+<span style="color:blue">Blood cell type QC: select cell types percentage with proportion > 1%</span>
+
+remove "Basophill percentage/count","Nucleated red blood cell percentage/count"
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+# QC: select cell types percentage with proportion > 1%
+cell_percentage <- data %>% 
+  dplyr::select(sample,matches("percentage"))
+vars <- c(colnames(cell_percentage[,2:8])[colMeans(cell_percentage[,2:8], na.rm = TRUE) < 1])
+# remove "Basophill percentage","Nucleated red blood cell percentage"
+vars
+#colMeans(cell_percentage[,2:8], na.rm = TRUE)
+#Basophill percentage 0.56998017 
+#Nucleated red blood cell percentage 0.03505115 
+data <- data %>% 
+  dplyr::select(-c(vars,`Basophill count`,`Nucleated red blood cell count`))
+```
+
+
+
+<span style="color:blue">**Remove all the RBC measurements**</span>
+
+The blood measurements associated with Red Blood Cells (RBCs) are:
+Red blood cell (erythrocyte) count
+Haemoglobin concentration
+Haematocrit percentage
+Mean corpuscular volume
+Mean corpuscular haemoglobin
+Mean corpuscular haemoglobin concentration
+Red blood cell (erythrocyte) distribution width
+Nucleated red blood cell count
+Nucleated red blood cell percentage
+Mean reticulocyte volume
+Mean sphered cell volume
+These measurements provide valuable information about the quantity, size, and quality of red blood cells in the bloodstream.
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+data <- data %>% 
+  dplyr::select(sample,mt,sex,age,logmt, Batch,PC1,PC2,PC3,PC4,PC5, diagnosis,
+                `White blood cell (leukocyte) count`,`Platelet count`,`Platelet crit`,
+                `Mean platelet (thrombocyte) volume`,`Platelet distribution width`,`Lymphocyte count`,
+                `Monocyte count`,`Neutrophill count`,`Eosinophill count`,
+                `Lymphocyte percentage`,`Monocyte percentage`,`Neutrophill percentage`,
+                `Eosinophill percentage`
+                )
+
+mtDNA_ukbb_summary_PD_blood_correction <- data
+
+```
+
+# Remove to only African ancestry 
+
+
+```{r}
+#mtDNA_ukbb_summary_PD_blood_correction
+#add ancestry
+ancestry <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/ancestry/20230216_app36610_eids_all_pops_non_euro_pruned.tsv")
+ancestry <- ancestry %>% 
+  dplyr::select(s,pop)
+colnames(ancestry) <- c("sample","ancestry")
+mtDNA_ukbb_summary_PD_blood_correction <- mtDNA_ukbb_summary_PD_blood_correction %>% 
+  left_join(ancestry) %>% 
+  filter(ancestry=="AFR") %>% 
+  dplyr::select(-ancestry)
+```
+
+
+
+
+<span style="color:blue">**PD_diagnosis & Boold cell composition**</span>
+
+<span style="color:blue">blood var rlm ~ PD_diagnosis + age + sex + Batch + PC1-5</span>
+
+blood var rlm ~ PD_diagnosis estimate
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+data <- mtDNA_ukbb_summary_PD_blood_correction
+data <- as.data.frame(data)
+data$diagnosis <- factor(data$diagnosis, level = c("Control", "Case"))
+data$sex <- factor(data$sex, level = c("Female", "Male"))
+data$Batch <- factor(data$Batch, level = c("1", "2"))
+data <- data %>% 
+  na.omit()
+data <- data %>% 
+  mutate(NLR=`Neutrophill percentage`/`Lymphocyte percentage`)
+#431093
+#Check relatedness
+related_remove <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240426_mwvc_pd_todrop.txt_MWVC.txt")
+data <- data %>% 
+  filter(!(sample %in% related_remove$V1))
+#data$NLR[is.na(data$NLR) | is.infinite(data$NLR)] <- 0
+#367322
+measure <- colnames(data)[13:ncol(data)]
+result <- list()
+for (i in 1:length(measure)) {
+res <- summary(lm.dx <- rlm(formula = data[,measure[i]] ~ diagnosis + age + sex + Batch + PC1 + PC2 + PC3 + PC4 + PC5, 
+                            data = data))$coefficients[2,] %>% unlist %>% matrix(nrow=1) %>% as.data.frame
+
+res$p.value <- f.robftest(lm.dx, var = "diagnosisCase")$p.value
+res$n.samp <- nrow(data)
+colnames(res)[1:4] <- c("Estimate","Std. Error","t value","Pr(>|t|)")
+res <- res %>% 
+  mutate(Measure=measure[i])
+result[[i]] <- res
+}
+
+rlm_result <- do.call(rbind,result)
+rlm_result$p.adj <- p.adjust(rlm_result$`Pr(>|t|)`, method="fdr")
+
+rlm_result_end <- data.frame(
+  Blood_measurement=rlm_result$Measure,
+  Estimate= round(rlm_result$Estimate,3),
+  `Std. Error`= round(rlm_result$`Std. Error`,3),
+  `t value` = round(rlm_result$`t value`,2),
+  `Pr(>|t|)` = ifelse(rlm_result$`Pr(>|t|)` < 0.0001,"p<0.0001",round(rlm_result$`Pr(>|t|)`,4)),
+  p.adj=ifelse(rlm_result$p.adj < 0.0001,"p<0.0001",round(rlm_result$p.adj,4))
+)
+
+
+colnames(rlm_result_end) <- c("Blood_measurement","Estimate","Std. Error","t value","Pr(>|t|)", "P.adj")
+#write.csv(rlm_result_end,"Blood_measurement_PDdiagnosis.csv",row.names = FALSE)
+
+datatable(rlm_result_end,
+  extensions = "Buttons",
+  rownames = FALSE,
+  options = list(
+    pageLength = 15,
+    dom = "Blfrtip",
+    buttons = c("copy", "csv", "excel")
+  ),
+  escape = F
+)
+
+```
+
+
+### Model selection
+
+
+<span style="color:blue">**Blood percentage & count-based measure**</span>
+
+Because some measurements do not have percentages, we will still use counts instead for these measurements
+
+
+**Full model**
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+#Blood count-based measure
+data <- mtDNA_ukbb_summary_PD_blood_correction
+#Select cell types 
+data <- data %>% 
+  dplyr::select(sample,mt,sex,age,logmt, Batch,PC1,PC2,PC3,PC4,PC5,diagnosis,
+                `White blood cell (leukocyte) count`,`Platelet count`,`Platelet crit`,
+                `Mean platelet (thrombocyte) volume`,`Platelet distribution width`,
+                #`Lymphocyte count`,`Monocyte count`,`Neutrophill count`,`Eosinophill count`
+                `Lymphocyte percentage`,`Monocyte percentage`,`Neutrophill percentage`,`Eosinophill percentage`
+                )
+#Check relatedness
+related_remove <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240426_mwvc_pd_todrop.txt_MWVC.txt")
+data <- data %>% 
+  filter(!(sample %in% related_remove$V1))
+mt_data <- data %>% 
+  na.omit()
+#367322     21
+### model selection
+# full model
+m0 <- lm(logmt ~ ., data = mt_data[,-c(1,2,3,4,6:12)])
+summary(m0)
+```
+
+
+<br>
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE,results='hide'}
+m1 <- step(m0, direction = "both")
+```
+
+
+
+**Step-wise regression**
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+summary(m1) #R2 = 19%
+```
+
+
+
+### Adjust the logmt
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+# cell composition correction
+mt.adj <- round(residuals(m1),4)
+adj.mt <- cbind(mt_data, mt.adj)
+adj.mt <- adj.mt %>% 
+  dplyr::select(sample,mt,logmt,mt.adj,Batch,sex,age,PC1,  PC2, PC3, PC4, PC5, diagnosis)
+adj.mt %>% 
+  as.tibble()
+
+mtDNA_ukbb_summary_PD_blood_correction_adj.mt <- adj.mt
+```
+
+<br>
+
+<hr>
+
+### Test the associations between mtDNA-CN (raw vs adjusted) and PD diagnosis
+
+### Summary table logmt & mt.adj ~ sex, age, Batch, diagnosis, PC1-5
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+#Test the associations between mtDNA-CN (raw vs adjusted) and PD diagnosis
+#mtDNA-CN raw
+# association test
+data <- mtDNA_ukbb_summary_PD_blood_correction_adj.mt
+# association test
+data$diagnosis <- factor(data$diagnosis, level = c("Control", "Case"))
+data$sex <- factor(data$sex, level = c("Female", "Male"))
+data$Batch <- factor(data$Batch, level = c("1", "2"))
+summary(data)
+#age
+test = data
+res <- summary(lm.dx <- rlm(formula = logmt ~ diagnosis + sex + age + Batch + PC1 + PC2 + PC3 + PC4 + PC5, 
+                            data = test))$coefficients
+
+#confindence level
+confint.default(object = lm.dx, parm = "diagnosisCase", level = 0.95)
+
+res <- data.frame(
+  var=rownames(res),
+  res
+) %>% 
+ filter(var %in% c("diagnosisCase","sexMale","age","Batch2"))
+res$p.value[1] <- f.robftest(lm.dx, var = "diagnosisCase")$p.value
+res$p.value[2] <- f.robftest(lm.dx, var = "sexMale")$p.value
+res$p.value[3] <- f.robftest(lm.dx, var = "age")$p.value
+res$p.value[4] <- f.robftest(lm.dx, var = "Batch2")$p.value
+res$n.samp <- nrow(test)
+colnames(res)[1:6] <- c("Variable","Estimate","Std. Error","t value","Pr(>|t|)","Nsample")
+res_raw <- res
+res_raw <- data.frame(
+  Type="mtCNraw",
+  res_raw
+)
+colnames(res_raw)[1:7] <- c("Type","Variable","Estimate","Std. Error","t value","Pr(>|t|)","Nsample")
+
+
+
+
+#mtDNA-CN adjusted
+# association test
+data <- mtDNA_ukbb_summary_PD_blood_correction_adj.mt
+# association test
+data$diagnosis <- factor(data$diagnosis, level = c("Control", "Case"))
+data$sex <- factor(data$sex, level = c("Female", "Male"))
+data$Batch <- factor(data$Batch, level = c("1", "2"))
+#summary(data)
+#age
+test = data
+res <- summary(lm.dx <- rlm(formula = mt.adj ~ diagnosis + sex + age + Batch + PC1 + PC2 + PC3 + PC4 + PC5, 
+                            data = test))$coefficients
+
+#confindence level
+confint.default(object = lm.dx, parm = "diagnosisCase", level = 0.95)
+
+res <- data.frame(
+  var=rownames(res),
+  res
+) %>% 
+ filter(var %in% c("diagnosisCase","sexMale","age","Batch2"))
+res$p.value[1] <- f.robftest(lm.dx, var = "diagnosisCase")$p.value
+res$p.value[2] <- f.robftest(lm.dx, var = "sexMale")$p.value
+res$p.value[3] <- f.robftest(lm.dx, var = "age")$p.value
+res$p.value[4] <- f.robftest(lm.dx, var = "Batch2")$p.value
+res$n.samp <- nrow(test)
+colnames(res)[1:6] <- c("Variable","Estimate","Std. Error","t value","Pr(>|t|)","Nsample")
+res_adj <- res
+res_adj <- data.frame(
+  Type="mtCNadj",
+  res_adj
+)
+colnames(res_adj)[1:7] <- c("Type","Variable","Estimate","Std. Error","t value","Pr(>|t|)","Nsample")
+
+res_all <- do.call(rbind,list(res_raw,res_adj))
+res_all_end <- data.frame(
+  Type=res_all$Type,
+  Variable=res_all$Variable,
+  Estimate= round(res_all$Estimate,3),
+  `Std. Error`= round(res_all$`Std. Error`,3),
+  `t value` = round(res_all$`t value`,2),
+  `Pr(>|t|)` = ifelse(res_all$`Pr(>|t|)` < 0.0001,"p<0.0001",round(res_all$`Pr(>|t|)`,3))
+)
+
+datatable(res_all_end,
+          rownames = FALSE,
+          extensions = 'Buttons',
+          options = list(pageLength = 10,
+                          dom = 'Blfrtip',
+                          buttons = c('copy', 'csv', 'excel')),
+          escape = F)
+```
+
+
+
+
+
+
+
+
+##################################################################################################################################################################
+
+
+2. NLR as a marker of inflammation is related to the peripheral inflammatory immune responses which are thought to play a major role in the pathogenesis of PD. Did you find NLR correlated with specific markers of immune system function or mtDNA-CN? 
+
+
+<span style="color:blue">UKBBdata table (combine boold cell composition & remove NA)</span>
+
+```{r,message=FALSE, warning=FALSE, eval=TRUE}
+# load mtDNA-CN results
+ukbdata <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240423_mtDNA_ukbb_batch1_batch2_summary.csv")
+batch <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240423_UKBB_eid_sequencing_batch.tsv")
+ukbdata <- ukbdata %>% 
+  full_join(batch,by=c("sample"="eid"))
+#Withdrawn participants
+withdrawn <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/w36610_2023-04-25.csv")
+ukbdata <- ukbdata %>% 
+  filter(!(sample %in% withdrawn$V1))
+#485443
+
+ukbdata <- ukbdata %>% 
+  dplyr::select(sample,mt,genetic_sex,Blood_Collection_Age,logmt,batch,PC1,PC2,PC3,PC4,PC5,Parkinsons)
+colnames(ukbdata)[6] <- "Batch"
+
+ukbdata <- ukbdata %>% 
+  dplyr::select(sample,mt,genetic_sex,Blood_Collection_Age,logmt,Batch,PC1,PC2,PC3,PC4,PC5,Parkinsons) %>% 
+  mutate(PD_diagnosis = ifelse(Parkinsons=="Y","Case","Control")) %>% 
+  dplyr::select(-Parkinsons) %>% 
+  na.omit()
+colnames(ukbdata) <- c("sample", "mt", "sex", "age","logmt", "Batch", "PC1","PC2", "PC3","PC4", "PC5", "diagnosis")
+#boold cell composition
+data <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/extracts/20240118_673741_ukb_blood.csv.gz")
+data <- data %>% 
+  dplyr::select(eid,matches("0-0.0")) %>% 
+  dplyr::select(eid,where(is.numeric))
+data <- data %>%   
+  pivot_longer(!eid,
+               names_to = "FieldIDNew",
+               values_to = "Value")
+dic <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/extracts/20240219_Data_Dictionary_Showcase.csv")
+dic <- dic %>% 
+  dplyr::select(FieldID,Field)
+dic <- dic %>% 
+  mutate(FieldIDNew=paste0(FieldID,"-0.0"))
+data <- data %>% 
+  left_join(dic)
+data <- data %>% 
+  dplyr::select(eid,Field,Value) %>% 
+  pivot_wider(names_from = Field,
+              values_from = Value)
+ukbdata <- ukbdata %>% 
+  left_join(data,by=c("sample"="eid"))
+ukbdata %>% 
+   as.tibble()
+mtDNA_ukbb_summary_PD_blood <- ukbdata
+```
+
+
+<br>
+
+<hr>
+
+<span style="color:blue">**UKBB boold cell composition data**</span>
+
+### Cell composition correction
+
+<span style="color:blue">Remove high missing blood cell type > 1%</span>
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+#Remove high missing cell type
+data <- mtDNA_ukbb_summary_PD_blood
+data_miss <- data.frame(miss=colSums(is.na(data))/nrow(data)*100) %>% 
+  filter(miss>1)
+data_miss
+data <- data %>% 
+  dplyr::select(-rownames(data_miss))
+```
+
+<span style="color:blue">Blood cell type QC: select cell types percentage with proportion > 1%</span>
+
+remove "Basophill percentage/count","Nucleated red blood cell percentage/count"
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+# QC: select cell types percentage with proportion > 1%
+cell_percentage <- data %>% 
+  dplyr::select(sample,matches("percentage"))
+vars <- c(colnames(cell_percentage[,2:8])[colMeans(cell_percentage[,2:8], na.rm = TRUE) < 1])
+# remove "Basophill percentage","Nucleated red blood cell percentage"
+vars
+#colMeans(cell_percentage[,2:8], na.rm = TRUE)
+#Basophill percentage 0.56998017 
+#Nucleated red blood cell percentage 0.03505115 
+data <- data %>% 
+  dplyr::select(-c(vars,`Basophill count`,`Nucleated red blood cell count`))
+```
+
+
+
+<span style="color:blue">**Remove all the RBC measurements**</span>
+
+The blood measurements associated with Red Blood Cells (RBCs) are:
+Red blood cell (erythrocyte) count
+Haemoglobin concentration
+Haematocrit percentage
+Mean corpuscular volume
+Mean corpuscular haemoglobin
+Mean corpuscular haemoglobin concentration
+Red blood cell (erythrocyte) distribution width
+Nucleated red blood cell count
+Nucleated red blood cell percentage
+Mean reticulocyte volume
+Mean sphered cell volume
+These measurements provide valuable information about the quantity, size, and quality of red blood cells in the bloodstream.
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+data <- data %>% 
+  dplyr::select(sample,mt,sex,age,logmt, Batch,PC1,PC2,PC3,PC4,PC5, diagnosis,
+                `White blood cell (leukocyte) count`,`Platelet count`,`Platelet crit`,
+                `Mean platelet (thrombocyte) volume`,`Platelet distribution width`,`Lymphocyte count`,
+                `Monocyte count`,`Neutrophill count`,`Eosinophill count`,
+                `Lymphocyte percentage`,`Monocyte percentage`,`Neutrophill percentage`,
+                `Eosinophill percentage`
+                )
+
+mtDNA_ukbb_summary_PD_blood_correction <- data
+
+```
+
+
+
+<span style="color:blue">**Boold cell composition correlation matrix plot without RBC measurements (after remove high missing rate > 1% & cell types percentage with proportion < 1%)**</span>
+
+
+<span style="color:blue">**PD_diagnosis & Boold cell composition**</span>
+
+<span style="color:blue">blood var rlm ~ PD_diagnosis + age + sex + Batch + PC1-5</span>
+
+blood var rlm ~ PD_diagnosis estimate
+
+We also randomly excluded one individual from any pair of related individuals with a genomic relationship larger than 0.05. After these QC steps, 288,837 unrelated individuals and 1,130,918 SNPs remained.
+
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+data <- mtDNA_ukbb_summary_PD_blood_correction
+data <- as.data.frame(data)
+data$diagnosis <- factor(data$diagnosis, level = c("Control", "Case"))
+data$sex <- factor(data$sex, level = c("Female", "Male"))
+data$Batch <- factor(data$Batch, level = c("1", "2"))
+data <- data %>% 
+  na.omit()
+data <- data %>% 
+  mutate(NLR=`Neutrophill percentage`/`Lymphocyte percentage`)
+#431093
+#Check relatedness
+related_remove <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240426_mwvc_pd_todrop.txt_MWVC.txt")
+data <- data %>% 
+  filter(!(sample %in% related_remove$V1))
+#data$NLR[is.na(data$NLR) | is.infinite(data$NLR)] <- 0
+#367322
+```
+
+
+# Add C-reactive protein (CRP, Data-Field 30710)
+
+```{r}
+crp <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/extracts/677999_biological_samples.csv")
+crp <- crp %>% 
+  dplyr::select(eid, `30710-0.0`)
+colnames(crp) <- c("sample","CRP")
+data <- data %>% 
+  left_join(crp)
+```
+
+
+#Check the correlation
+
+```{r,eval=FALSE}
+#NLR Vs CRP
+data %>% 
+  ggplot(aes(x=log(NLR),y=log(CRP)))+
+  geom_point()+
+  stat_cor()+
+  geom_smooth(method = "lm")
+
+#NLR Vs log mitochondrial DNA copy number (mtDNA-CN)
+data %>% 
+  ggplot(aes(x=log(NLR),y=logmt))+
+  geom_point()+
+  stat_cor()+
+  geom_smooth(method = "lm")+
+  labs(y="log(mtDNA-CN)")
+
+```
+
+
+
+
+
+
+
+
