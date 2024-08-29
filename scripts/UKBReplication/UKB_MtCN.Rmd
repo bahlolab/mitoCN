@@ -159,27 +159,7 @@ logmt ~ blood cell variables
 
 adjusted mt: residual of logmt ~ selected variables
  
-### Adjust the boold cell composition
-
-<span style="color:blue">**UKBB boold cell measurements**</span>
-
-
-```{r, message=FALSE, warning=FALSE, eval=TRUE}
-blood_measure <- read.csv("Blood_Measurements.csv")
-blood_measure$UKBBLink <- paste0('<a href="',blood_measure$UKBBLink,'">', 'UKBB_', blood_measure$FieldID ,"</a>")
-datatable(blood_measure,
-          extensions = 'Buttons',
-          options = list(pageLength = 10,
-                          dom = 'Blfrtip',
-                          buttons = c('copy', 'csv', 'excel')),
-          escape = F)
-```
-
-<br>
-
-<span style="color:blue">**UKBB boold cell composition data**</span>
-
-### Cell composition correction
+### Adjust the boold cell composition and Cell composition correction
 
 <span style="color:blue">Remove high missing blood cell type > 1%</span>
 
@@ -244,25 +224,13 @@ mtDNA_ukbb_summary_PD_blood_correction <- data
 ```
 
 
-
-<span style="color:blue">**Boold cell composition correlation matrix plot without RBC measurements (after remove high missing rate > 1% & cell types percentage with proportion < 1%)**</span>
-
-
-```{r, message=FALSE, warning=FALSE, eval=TRUE,fig.width=15,fig.height=15}
-data <- mtDNA_ukbb_summary_PD_blood_correction
-ggcorrmat(data[,-c(1,2,3,4,6:12)],colors   = c("#B2182B", "white", "#4D4D4D"),
-          ggcorrplot.args = list(method = "square", outline.color = "black",lab_size = 3),
-          number.cex = 0.1,
-          matrix.type  = "lower")
-```
-
-
 <span style="color:blue">**PD_diagnosis & Boold cell composition**</span>
 
 <span style="color:blue">blood var rlm ~ PD_diagnosis + age + sex + Batch + PC1-5</span>
 
 blood var rlm ~ PD_diagnosis estimate
 
+We also randomly excluded one individual from any pair of related individuals with a genomic relationship larger than 0.05. After these QC steps, 288,837 unrelated individuals and 1,130,918 SNPs remained.
 
 
 ```{r, message=FALSE, warning=FALSE, eval=TRUE}
@@ -280,6 +248,7 @@ data <- data %>%
 related_remove <- fread("/vast/projects/bahlo_ukbiobank/app36610_HDA/mitochondria/20240426_mwvc_pd_todrop.txt_MWVC.txt")
 data <- data %>% 
   filter(!(sample %in% related_remove$V1))
+#data$NLR[is.na(data$NLR) | is.infinite(data$NLR)] <- 0
 #367322
 measure <- colnames(data)[13:ncol(data)]
 result <- list()
@@ -472,123 +441,6 @@ res_adj <- res %>%
 
 
 # Step 4
-
-Make a table to compare between raw and adjusted mt
-
-
-```{r, message=FALSE, warning=FALSE, eval=TRUE}
-res_all <- do.call(rbind,list(res_raw,res_adj))
-res_all <- res_all %>% 
-  mutate(SelectVariable=c("", "White blood cell (leukocyte) count; Platelet count; Platelet crit; Mean platelet (thrombocyte) volume; Platelet distribution width; Lymphocyte percentage; Monocyte percentage; Neutrophill percentage; Eosinophill percentage"))
-res_all
-```
-
-
-
-
-
-
-
-
-
-
-
-<br>
-
-
-<span style="color:blue">Scatter plot age vs logmt & adjusted logmt</span>
-
-```{r,warning=FALSE,message=FALSE,echo=FALSE}
-theme_Publication <- function(base_size=14, base_family="helvetica") {
-      library(grid)
-      library(ggthemes)
-      (theme_foundation(base_size=base_size, base_family=base_family)
-       + theme(plot.title = element_text(face = "bold",
-                                         size = rel(1.2), hjust = 0.5),
-               text = element_text(),
-               panel.background = element_rect(colour = NA),
-               plot.background = element_rect(colour = NA),
-               panel.border = element_rect(colour = NA),
-               axis.title = element_text(face = "bold",size = rel(1)),
-               axis.title.y = element_text(angle=90,vjust =2),
-               axis.title.x = element_text(vjust = -0.2),
-               axis.text = element_text(), 
-               axis.line = element_line(colour="black"),
-               axis.ticks = element_line(),
-               panel.grid.major = element_line(colour="#f0f0f0"),
-               panel.grid.minor = element_blank(),
-               legend.key = element_rect(colour = NA),
-               legend.position = "bottom",
-               legend.direction = "horizontal",
-               legend.key.size= unit(0.2, "cm"),
-               legend.margin = unit(0, "cm"),
-               legend.title = element_text(face="italic"),
-               plot.margin=unit(c(10,5,5,5),"mm"),
-               strip.background=element_rect(colour="#f0f0f0",fill="#f0f0f0"),
-               strip.text = element_text(face="bold")
-          ))
-      
-}
-
-```
-
-
-
-
-```{r,message=FALSE, warning=FALSE, eval=TRUE}
-#367322
-data <- mtDNA_ukbb_summary_PD_blood_correction_adj.mt
-scatter_plot <- data %>% 
-  dplyr::select(sample,sex,age,diagnosis,Batch,logmt,mt.adj) %>% 
-  pivot_longer(cols = logmt:mt.adj,
-               names_to = "logmt",
-               values_to = "Value")
-
-
-scatter_plot$logmt[scatter_plot$logmt =="logmt"] <- "mtCNraw"
-scatter_plot$logmt[scatter_plot$logmt =="mt.adj"] <- "mtCNadj"
-
-scatter_plot$logmt <- factor(scatter_plot$logmt,levels = c("mtCNraw","mtCNadj"))
-colnames(scatter_plot)[2] <- "Sex"
-
-
-#mtCNraw
-
-p1 <- scatter_plot %>% 
-  filter(logmt=="mtCNraw") %>% 
-  ggplot(aes(x=age,y=Value,color=Sex))+
-  geom_point(alpha=0.1)+
-  geom_smooth(method = "lm",size = 2)+
-  stat_cor()+
-  #facet_grid(logmt~.,space = "free",scales = "free")+
-  ggsci::scale_color_npg()+
-  #theme_bw()+
-  #ggthemes::theme_calc()+
-  theme_Publication()+
-  labs(x="Age",y="log-transformed mtDNA copy number")
-
-
-p2 <- scatter_plot %>% 
-  filter(logmt=="mtCNadj") %>% 
-  ggplot(aes(x=age,y=Value,color=Sex))+
-  geom_point(alpha=0.1)+
-  geom_smooth(method = "lm",size = 2)+
-  stat_cor()+
-  #facet_grid(logmt~.,space = "free",scales = "free")+
-  ggsci::scale_color_npg()+
-  #theme_bw()+
-  #ggthemes::theme_calc()+
-  theme_Publication()+
-  labs(x="Age",y="Adjusted mtDNA copy number")
-#(Blood cell composition correction)
-
-ggpubr::ggarrange(p1,p2,nrow=1,common.legend = TRUE,legend="bottom")
-#1500 700
-```
-
-
-<br>
-
 
 ### Summary table logmt & mt.adj ~ sex, age, Batch, diagnosis, PC1-5
 
