@@ -8,7 +8,7 @@ Please contact the author, Longfei Wang <wang.lo@wehi.edu.au>, if you would like
 If you use mitoCN, please acknowledge by citing 
 "Longfei Wang, Liam G. Fearnley, Michael Milton, Terence P. Speed and Melanie Bahlo. **mitoCN: a fast and robust mitochondrial DNA copy number estimator using whole-genome sequencing data.** [![DOI](https://zenodo.org/badge/621654308.svg)](https://zenodo.org/badge/latestdoi/621654308)"
 
-"Longfei Wang et al. **Unveiling Peripheral Immune Dysfunction in Parkinson's Disease through Analysis of Blood-based Mitochondrial DNA Copy Number**. medRxiv (2024). (https://www.medrxiv.org/content/10.1101/2024.04.28.24306517v1)"
+"Wang, L., Han, J., Fearnley, L.G. et al. Peripheral immune cell abundance differences link blood mitochondrial DNA copy number and Parkinson’s disease. npj Parkinsons Dis. 10, 219 (2024). https://doi.org/10.1038/s41531-024-00831-x"
 
 ## Installation
 * Clone this repository
