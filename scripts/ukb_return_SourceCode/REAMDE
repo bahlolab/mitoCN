@@ -1,0 +1,17 @@
+README for mtDNA Copy Number Results
+------------------------------------
+This file contains mitochondrial DNA copy number (mtDNA-CN) estimates for UK Biobank participants with whole-genome sequencing (WGS) data. Specifically, it includes:
+- Raw mtDNA-CN estimates for 485,270 participants
+- Blood cell composition–adjusted mtDNA-CN estimates for 367,206 unrelated participants with complete information on selected blood cell proportions and relevant covariates (e.g., sex and age)
+
+Columns:
+- eid: UK Biobank participant ID
+- mtDNA_CN_raw: Raw mtDNA-CN estimate generated using the mitoCN tool
+- mtDNA_CN_adjusted: mtDNA-CN estimate adjusted for blood cell composition. This value represents the residual from the final linear model selected via stepwise regression:
+log(mtDNA-CN) ~ white blood cell count + platelet count + 
+plateletcrit (PCT) + mean platelet volume + platelet distribution width + lymphocyte percentage + monocyte percentage + 
+neutrophil percentage + eosinophil percentage
+Note: NA indicates missing data on blood cell composition or known correlates (e.g., sex, age) for that participant.
+
+Reference genome: GRCh38
+Tool version: mitoCN v1.0
